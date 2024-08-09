@@ -1,3 +1,7 @@
+```shell
+docker run -d -p 12345:12345 registry.cn-hangzhou.aliyuncs.com/smallfawn/dingdong
+```
+第一个12345是外部接口
 ## `/login` 接口
 
 ### 描述
