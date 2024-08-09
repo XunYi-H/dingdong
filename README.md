@@ -57,6 +57,7 @@
   "msg": "成功提交验证码"
 }
 ```
+### 提交成功后 5s后会清除状态 所以在提交成功后 在5s内尽快check 查询cookie
 ```json
 {
   "status": "wrongSMS",
