@@ -54,7 +54,19 @@ function login(account, password) {
         body: { id: account, pw: password },
     });
     if (response.body.status == 'pass') {
-        return response.body.cookie
+        for (let i = 0; i < 15; i++) {
+            time.sleep(1000)
+            let checkRes = request({
+                url: `${host}/check`,
+                method: "post",
+                json: true,
+                body: { cookie: response.body.cookie },
+            });
+            if (checkRes.body.status == 'pass') {
+                return response.body.cookie
+            }
+        }
+
     } else {
         const response = request({
             url: `${host}/login`,
@@ -63,7 +75,18 @@ function login(account, password) {
             body: { id: account, pw: password },
         });
         if (response.body.status == 'pass') {
-            return response.body.cookie
+            for (let i = 0; i < 15; i++) {
+                time.sleep(1000)
+                let checkRes = request({
+                    url: `${host}/check`,
+                    method: "post",
+                    json: true,
+                    body: { cookie: response.body.cookie },
+                });
+                if (checkRes.body.status == 'pass') {
+                    return response.body.cookie
+                }
+            }
         } else {
             return ''
         }

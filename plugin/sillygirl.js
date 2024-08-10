@@ -55,7 +55,7 @@ function main() {
                 if (ptpins.find((item) => item.ptpin === ptpinValue)) {
                     //s.reply(`${qq}#${s.getUserName()} 账号已存在`);
                 } else {
-                    ptpins.push({ ptpin: ptpinValue, account, password });
+                    ptpins.push({ id: s.getUserId(), ptpin: ptpinValue, account, password });
                     bucket["ptpins"] = JSON.stringify(ptpins);
                 }
                 update(checkResponse.cookie)
@@ -83,7 +83,7 @@ function main() {
                             if (ptpins.find((item) => item.ptpin === ptpinValue)) {
                                 //s.reply(`${qq}#${s.getUserName()} 账号已存在`);
                             } else {
-                                ptpins.push({ ptpin: ptpinValue, account, password });
+                                ptpins.push({ id: s.getUserId(), ptpin: ptpinValue, account, password });
                                 bucket["ptpins"] = JSON.stringify(ptpins);
                             }
                             update(checkResponse.cookie)
