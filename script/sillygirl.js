@@ -3,45 +3,69 @@
 let bucket = Bucket("smallfawn");
 let qlappid = bucket["ql_app_id"];
 let qlappsecret = bucket["ql_app_secret"];
-//计划将ptpin列表改为数组
 let ptpins = bucket["ptpins"];
 let qlhost = bucket["ql_host"];
 let jdckhost = bucket["jdck_host"];
-let demo = [{ ptpin: "ptpin", password: "password", account: "account" }];
 let failEnv = [];//初始化失败的环境变量
-
-//为防止死循环 这里暂时 设置最大重试次数为3次
-//循环10次 每次延迟1秒
-function wait(time) {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, time * 1000);
-    });
-}
+let token = "";
+let env = []
 /**
  * 获取临时Token
  */
-function getToken() { }
+function getToken() {
+    let { body: tokenRes } = request({
+        url: `${ql_host}/open/auth/token?client_id=${ql_app_id}&client_secret=${ql_app_secret}`,
+        method: "get",
+        json: true,
+    })
+    if (tokenRes.code != 200) {
+        console.log(`青龙密钥错误`);
+        return;
+    } else {
+        token = tokenRes.data.token;
+    }
+}
 /**
  * 获取青龙环境
  */
-function getEnv() { }
+function getEnv() {
+    let { body: envRes } = request({
+        url: `${ql_host}/open/envs?t=${new Date().getTime()}&&searchValue=JD_COOKIE`,
+        method: "get",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        json: true,
+    })
+    if (envRes.code != 200) {
+        console.log(`青龙环境获取失败`);
+        return;
+    } else {
+        env = envRes.data;
+        console.log(`青龙环境获取成功`);
+    }
+}
 /**
  * 检索失效的京东COOKIE
  */
-function checkEnv() { }
+function checkEnv(env) {
+    for (let i = 0; i < env.length; i++) {
+        if (env[i].name == "JD_COOKIE") {
+            if (
+                env[i].value.match(/pt_pin=([^; ]+)(?=;?)/)
+            ) {
+                if (env[i].status == 1) {
+                    //无效
+                    failEnv.push(env[i].value.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
+                }
+            }
+        }
+    }
+}
 //请求获得失效的京东COOKIE
 //匹配pt_pin //根据存储桶拿到pt_pin 相关的手机号和密码
 
-function getAccountAndPassword(ptpin) {
-    //return bucket[ptpin]
-    return bucket[ptpins].find(function (item) {
-        if (item.ptpin === ptpin) {
-            return item;
-        }
-    });
-}
+
 //再次请求登录
 //理论上第一次需要经过短信验证 这里在用户第一次提交账号密码时就已经通过了
 function login(account, password) {
@@ -60,7 +84,7 @@ function login(account, password) {
                 url: `${host}/check`,
                 method: "post",
                 json: true,
-                body: { cookie: response.body.cookie },
+                body: { uid: response.body.uid },
             });
             if (checkRes.body.status == 'pass') {
                 return response.body.cookie
@@ -81,7 +105,7 @@ function login(account, password) {
                     url: `${host}/check`,
                     method: "post",
                     json: true,
-                    body: { cookie: response.body.cookie },
+                    body: { uid: response.body.uid },
                 });
                 if (checkRes.body.status == 'pass') {
                     return response.body.cookie
@@ -92,15 +116,37 @@ function login(account, password) {
         }
     }
 }
-function updateEnv() { }
+function updateEnv() {
+
+ }
 //更新青龙
 function main() {
+    try {
+        ptpins = JSON.parse(ptpins);
+    } catch (error) {
+        console.log(`存储桶解析失败`);
+        return;
+    }
     getToken();
-    getEnv();
-    checkEnv();
+    if (token !== '') {
+        getEnv();
+        checkEnv();
+        for (let i = 0; i < ptpins.length; i++) {
+            for (let j = 0; j < failEnv.length; j++) {
+                if (ptpins[i].ptpin == failEnv[j]) {
+                    let account = ptpins[i].account;
+                    let password = ptpins[i].password;
+                    let cookie = login(account, password);
+                    if (cookie != '') {
+                        //更新青龙
+                        //应该更新完毕之后 再去启动变量
+                        //未完待续
+                        updateEnv(cookie);
+                    }
+                }
+            }
+        }
+    }
 
-    getAccountAndPassword();
-    login();
-    updateEnv();
     //...
 }

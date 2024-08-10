@@ -21,7 +21,7 @@ let input = "";
 
 function main() {
     try {
-        if (!bucket["ptpins"]) {
+        if (bucket["ptpins"] == null) {
             bucket["ptpins"] = '[]'
         }
         let ptpins = bucket["ptpins"];
