@@ -8,6 +8,7 @@ let ptpins = bucket["ptpins"];
 let qlhost = bucket["ql_host"];
 let jdckhost = bucket["jdck_host"];
 let demo = [{ ptpin: "ptpin", password: "password", account: "account" }];
+let failEnv = [];//初始化失败的环境变量
 
 //为防止死循环 这里暂时 设置最大重试次数为3次
 //循环10次 每次延迟1秒
@@ -73,7 +74,6 @@ function updateEnv() { }
 function main() {
     getToken();
     getEnv();
-    let failEnv = [];
     checkEnv();
 
     getAccountAndPassword();
