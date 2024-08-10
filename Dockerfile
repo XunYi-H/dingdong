@@ -11,8 +11,8 @@ RUN apt -y update && \
     pip install pyppeteer Pillow asyncio aiohttp opencv-python-headless ddddocr quart && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ./api.py ./api.py
-COPY ./login.py ./login.py
+COPY ./docker/api.py ./api.py
+COPY ./docker/login.py ./login.py
 # Expose the port
 EXPOSE 12345
 
