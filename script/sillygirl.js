@@ -1,11 +1,18 @@
-//定时0 0 6 * * *
-//根据存储桶拿到青龙配置文件
+/**
+ * @version v1.0.0
+ * @create_at 2024-08-10 15:23:58
+ * @title 无名脚本
+ * @description 🐒这个人很懒什么都没有留下
+ * @author 佚名
+ * @rule 杀杀杀
+ */
+//定时0 0 6 * * * 测试版
 let bucket = Bucket("smallfawn");
 let qlappid = bucket["ql_app_id"];
 let qlappsecret = bucket["ql_app_secret"];
 let ptpins = bucket["ptpins"];
 let qlhost = bucket["ql_host"];
-let jdckhost = bucket["jdck_host"];
+let jdckhost = 'http://127.0.0.1:12345'
 let failEnv = [];//初始化失败的环境变量
 let token = "";
 let env = []
@@ -14,7 +21,7 @@ let env = []
  */
 function getToken() {
     let { body: tokenRes } = request({
-        url: `${ql_host}/open/auth/token?client_id=${ql_app_id}&client_secret=${ql_app_secret}`,
+        url: `${qlhost}/open/auth/token?client_id=${qlappid}&client_secret=${qlappsecret}`,
         method: "get",
         json: true,
     })
@@ -30,7 +37,7 @@ function getToken() {
  */
 function getEnv() {
     let { body: envRes } = request({
-        url: `${ql_host}/open/envs?t=${new Date().getTime()}&&searchValue=JD_COOKIE`,
+        url: `${qlhost}/open/envs?t=${new Date().getTime()}&&searchValue=JD_COOKIE`,
         method: "get",
         headers: {
             Authorization: `Bearer ${token}`,
@@ -48,15 +55,17 @@ function getEnv() {
 /**
  * 检索失效的京东COOKIE
  */
-function checkEnv(env) {
+function checkEnv() {
     for (let i = 0; i < env.length; i++) {
         if (env[i].name == "JD_COOKIE") {
             if (
                 env[i].value.match(/pt_pin=([^; ]+)(?=;?)/)
             ) {
                 if (env[i].status == 1) {
+
+
                     //无效
-                    failEnv.push(env[i].value.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
+                    failEnv.push({ id: env[i].id, ptpin: env[i].value.match(/pt_pin=([^; ]+)(?=;?)/)[1] });
                 }
             }
         }
@@ -81,19 +90,19 @@ function login(account, password) {
         for (let i = 0; i < 15; i++) {
             time.sleep(1000)
             let checkRes = request({
-                url: `${host}/check`,
+                url: `${jdckhost}/check`,
                 method: "post",
                 json: true,
                 body: { uid: response.body.uid },
             });
             if (checkRes.body.status == 'pass') {
-                return response.body.cookie
+                return checkRes.body.cookie
             }
         }
 
     } else {
         const response = request({
-            url: `${host}/login`,
+            url: `${jdckhost}/login`,
             method: "post",
             json: true,
             body: { id: account, pw: password },
@@ -102,13 +111,13 @@ function login(account, password) {
             for (let i = 0; i < 15; i++) {
                 time.sleep(1000)
                 let checkRes = request({
-                    url: `${host}/check`,
+                    url: `${jdckhost}/check`,
                     method: "post",
                     json: true,
                     body: { uid: response.body.uid },
                 });
                 if (checkRes.body.status == 'pass') {
-                    return response.body.cookie
+                    return checkRes.body.cookie
                 }
             }
         } else {
@@ -116,9 +125,38 @@ function login(account, password) {
         }
     }
 }
-function updateEnv() {
-
- }
+function updateEnv(id, cookie) {
+    let { body: res } = request({
+        url: `${qlhost}/open/envs?t=${new Date().getTime()}`,
+        method: "put",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        json: true,
+        body: { "name": "JD_COOKIE", "value": cookie, "remarks": null, "id": id }
+    })
+    if (res.code == 200) {
+        console.log(`更新青龙成功`);
+    } else {
+        console.log(`更新青龙失败`);
+    }
+}
+function enableEnv(id) {
+    let { body: res } = request({
+        url: `${qlhost}/open/envs/enable?t=${new Date().getTime()}`,
+        method: "put",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        json: true,
+        body: [id]
+    })
+    if (res.code == 200) {
+        console.log(`启用青龙成功`);
+    } else {
+        console.log(`启用青龙失败`);
+    }
+}
 //更新青龙
 function main() {
     try {
@@ -133,7 +171,7 @@ function main() {
         checkEnv();
         for (let i = 0; i < ptpins.length; i++) {
             for (let j = 0; j < failEnv.length; j++) {
-                if (ptpins[i].ptpin == failEnv[j]) {
+                if (ptpins[i].ptpin == failEnv[j].ptpin) {
                     let account = ptpins[i].account;
                     let password = ptpins[i].password;
                     let cookie = login(account, password);
@@ -141,12 +179,15 @@ function main() {
                         //更新青龙
                         //应该更新完毕之后 再去启动变量
                         //未完待续
-                        updateEnv(cookie);
+                        updateEnv(failEnv[j].id, cookie);
+                        enableEnv(failEnv[j].id)
                     }
                 }
             }
         }
+        return console.log(`未找到匹配的失效账号`)
     }
 
     //...
 }
+main()
