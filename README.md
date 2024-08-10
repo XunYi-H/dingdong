@@ -109,3 +109,9 @@ docker run -d -p 12345:12345 registry.cn-hangzhou.aliyuncs.com/smallfawn/ddd
   "msg": "短信验证错误，请重新输入"
 }
 ```
+```json
+{
+  "status": "SMS",
+  "msg": "需要短信验证"
+}
+```
