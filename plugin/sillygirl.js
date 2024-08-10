@@ -9,7 +9,7 @@ const s = sender;
 const chat = s.getChatId();
 const qq = s.getUserId();
 const inputTimeout = 30 * 1000;
-const host = "http://8.141.174.247:12345";
+const host = "http://127.0.0.1:12345";
 let input = "";
 
 function main() {
