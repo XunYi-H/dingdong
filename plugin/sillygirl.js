@@ -4,19 +4,25 @@
  * @version v1.0.0
  * @rule 叮叮当
  */
-
+/**
+ * 你必须设置存储桶smallfawn
+ * 且 存储桶内有 ql_host 、ql_app_id 、ql_app_secret
+ */
 const s = sender;
 const chat = s.getChatId();
 const qq = s.getUserId();
 const inputTimeout = 30 * 1000;
 const host = "http://8.141.174.247:12345";
 const bucket = Bucket("smallfawn");
+let ql_host = bucket["ql_host"];
+let ql_app_id = bucket["ql_app_id"];
+let ql_app_secret = bucket["ql_app_secret"];
 let input = "";
 
 function main() {
     try {
         if (!bucket["ptpins"]) {
-            bucket["ptpins"] = [].toString();
+            bucket["ptpins"] = '[]'
         }
         let ptpins = bucket["ptpins"];
         try {
@@ -45,8 +51,14 @@ function main() {
             if (checkResponse.status === "pass") {
                 s.reply(`${qq}#${s.getUserName()} 登录成功`);
                 let ptpinValue = checkResponse.cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1];
-                ptpins.push({ ptpin: ptpinValue, account, password });
-                bucket["ptpins"] = JSON.stringify(ptpins);
+                //如果存在则不push
+                if (ptpins.find((item) => item.ptpin === ptpinValue)) {
+                    //s.reply(`${qq}#${s.getUserName()} 账号已存在`);
+                } else {
+                    ptpins.push({ ptpin: ptpinValue, account, password });
+                    bucket["ptpins"] = JSON.stringify(ptpins);
+                }
+                update(checkResponse.cookie)
                 return;
             } else if (checkResponse.status === "SMS") {
                 s.reply(`${qq}#${s.getUserName()} 正在发送短信，请稍等`);
@@ -68,8 +80,13 @@ function main() {
                             let ptpinValue = checkResponse.cookie.match(
                                 /pt_pin=([^; ]+)(?=;?)/
                             )[1];
-                            ptpins.push({ ptpin: ptpinValue, account, password });
-                            bucket["ptpins"] = JSON.stringify(ptpins);
+                            if (ptpins.find((item) => item.ptpin === ptpinValue)) {
+                                //s.reply(`${qq}#${s.getUserName()} 账号已存在`);
+                            } else {
+                                ptpins.push({ ptpin: ptpinValue, account, password });
+                                bucket["ptpins"] = JSON.stringify(ptpins);
+                            }
+                            update(checkResponse.cookie)
                             return;
                         }
                     }
@@ -101,7 +118,7 @@ function promptInput(promptText, validationFunction) {
         handle: (s) => {
             input = s.getContent();
             if (validationFunction(input) && isSameUserAndChat()) {
-                s.reply(`@${qq}#${s.getUserName()} 输入正确 ` + input);
+                //s.reply(`@${qq}#${s.getUserName()} 输入正确 ` + input);
                 return;
             } else if (input === "q" && isSameUserAndChat()) {
                 input = "";
@@ -155,9 +172,6 @@ function isValidUrl(url) {
 }
 //进行更新上传操作
 function update(cookies) {
-    let ql_host = bucket["ql_host"];
-    let ql_app_id = bucket["ql_app_id"];
-    let ql_app_secret = bucket["ql_app_secret"];
     if (!ql_app_id || !ql_app_secret || !ql_host) {
         s.reply(`请先配置青龙密钥和APPID和青龙地址`);
         return;
@@ -166,42 +180,71 @@ function update(cookies) {
         s.reply(`青龙地址格式错误`);
         return;
     }
-    let token = request({
+    let token = ''
+    let { body: tokenRes } = request({
         url: `${ql_host}/open/auth/token?client_id=${ql_app_id}&client_secret=${ql_app_secret}`,
-        method: "post",
+        method: "get",
         json: true,
-    }).body.data.token;
-    let env = request({
+    })
+    if (tokenRes.code != 200) {
+        s.reply(`青龙密钥错误`);
+        return;
+    }
+    token = tokenRes.data.token
+    let { body: env } = request({
         url: `${ql_host}/open/envs?t=${Date.now()}&searchValue=JD_COOKIE`,
         method: "get",
         headers: {
             Authorization: `Bearer ${token}`,
         },
         json: true,
-    }).body.data;
-    if (env.length == 0) {
+    })
+    let found = false; // 标记是否找到匹配的 pt_pin
+    if (env.data.length == 0) {
+        createEnv(cookies);
     } else {
-        for (let i = 0; i < env.length; i++) {
-            if (env[i].name == "JD_COOKIE") {
+        for (let i = 0; i < env.data.length; i++) {
+            if (env.data[i].name == "JD_COOKIE") {
                 if (
-                    env[i].value.match(/pt_pin=([^; ]+)(?=;?)/) &&
-                    env[i].value.match(/pt_pin=([^; ]+)(?=;?)/)[1] == cookies.match(/pt_pin=([^; ]+)(?=;?)/)[1]
+                    env.data[i].value.match(/pt_pin=([^; ]+)(?=;?)/) &&
+                    env.data[i].value.match(/pt_pin=([^; ]+)(?=;?)/)[1] == cookies.match(/pt_pin=([^; ]+)(?=;?)/)[1]
                 ) {
-                    let id = env[i].id;
-                    let updateRes = request({
+                    found = true;
+                    let id = env.data[i].id;
+                    let { body: updateRes } = request({
                         url: `${ql_host}/open/envs?t=${Date.now()}`,
-                        method: "post",
+                        method: "put",
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                         json: true,
-                        body: { "name": "JD_COOKIE", "value": "VASASSS", "remarks": null, "id": id }
-                    }).body.code
-                    if (updateRes == 200) {
+                        body: { "name": "JD_COOKIE", "value": cookies, "remarks": null, "id": id }
+                    })
+                    if (updateRes.code == 200) {
                         s.reply(`更新成功`);
                     }
                 }
             }
+        }
+
+    }
+    if (!found) {
+        createEnv(cookies);
+    }
+    // 创建新变量的函数
+    function createEnv(cookie) {
+        let { body: createRes } = request({
+            url: `${ql_host}/open/envs?t=${Date.now()}`,
+            method: "post",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            json: true,
+            body: [{ "value": cookie, "name": "JD_COOKIE" }]
+        })
+        //s.reply(createRes)
+        if (createRes.code == 200) {
+            s.reply(`创建成功`);
         }
     }
 }
