@@ -4,6 +4,7 @@ let bucket = Bucket('smallfawn')
 let qlappid = bucket['ql_app_id']
 let qlappsecret = bucket['ql_app_secret']
 //计划将ptpin列表改为数组
+let ptpins = bucket['ptpins']
 let demo = [{ ptpin: "ptpin", password: "password", account: "account" }]
 /**
  * 获取临时Token
@@ -27,13 +28,31 @@ function checkEnv() {
 
 function getAccountAndPassword(ptpin) {
     //return bucket[ptpin]
+    return bucket[ptpins].find(function (item) {
+        if (item.ptpin === ptpin) {
+            return item
+        }
+    })
 }
 //再次请求登录
+//理论上第一次需要经过短信验证 这里在用户第一次提交账号密码时就已经通过了
 function login(account, password) {
     account = account + ''
     password = password + ''
+
 }
 function updateEnv() {
 
 }
 //更新青龙
+function main() {
+    getToken()
+    getEnv()
+    let failEnv = []
+    checkEnv()
+
+    getAccountAndPassword()
+    login()
+    updateEnv()
+    //...
+}
