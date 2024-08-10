@@ -1,4 +1,6 @@
 # 请合作者完善plugin 里面的两个机器人框架的插件 和script机器人定时执行脚本
+# 目前计划适配 无界 傻妞 奥特曼
+# 截至8-17 未参与issues 提议(反馈BUG和功能建议) 和 pr代码(提供和优化代码)的都会被撤去内测资格
 ```shell
 docker run -d -p 12345:12345 registry.cn-hangzhou.aliyuncs.com/smallfawn/ddd
 ```
