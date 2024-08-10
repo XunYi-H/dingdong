@@ -69,6 +69,10 @@ class JD:
                                                     # 无验证
                                                     cookie = checkData["cookie"]
                                                     self.sender.reply(f"获取cookie成功：{cookie}")
+                                                    return 
+                                                else:
+                                                    self.sender.reply(f"重新登录吧：{checkData}")
+                                                    return 
                                             else:
                                                 self.sender.reply("服务错误")
 
