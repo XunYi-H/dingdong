@@ -6,7 +6,7 @@
 # [rule: ^男娘(.*)$]
 '''
 未测试，看接口写的
-
+奥特曼插件
 
 '''
 import middleware,requests,re
@@ -50,6 +50,11 @@ class JD:
                                 #无验证
                                 cookie = checkData["cookie"]
                                 self.sender.reply(f"获取cookie成功：{cookie}")
+                                #调用青龙
+                                #QL(cookie)
+
+
+
                             elif checkData["status"] == "SMS":
                                 #进行验证
                                 self.sender.reply(f"{checkData['msg']},已发送短信")
@@ -69,10 +74,12 @@ class JD:
                                                     # 无验证
                                                     cookie = checkData["cookie"]
                                                     self.sender.reply(f"获取cookie成功：{cookie}")
-                                                    return 
+                                                    # 调用青龙
+                                                    # QL(cookie)
+                                                    return
                                                 else:
                                                     self.sender.reply(f"重新登录吧：{checkData}")
-                                                    return 
+                                                    return
                                             else:
                                                 self.sender.reply("服务错误")
 
@@ -118,6 +125,40 @@ class JD:
             return res.json()
         else:
             return False
+# 青龙函数例子
+# class QL:
+#     def __init__(self,ck):
+#         self.ck = ck
+#         self.qlhost = ""
+#         self.qlid = ""
+#         self.qlsecret = ""
+#         self.qltoken = None
+#         self.qlhd = None
+#     def ql_login(self):
+#         url = f"{self.qlhost}/open/auth/token?client_id={self.qlid}&client_secret={self.qlsecret}"
+#         res = requests.get(url).json()
+#         if res["code"] == 200:
+#             self.qltoken = res['data']['token']
+#             self.qlhd = {
+#                 "Authorization": f"Bearer {self.qltoken}",
+#                 "accept": "application/json",
+#                 "Content-Type": "application/json",
+#             }
+#             return True
+#         else:  
+#             return False
+#     def get_env(self):
+#         return 
+#     def update_env(self):
+#         return 
+#     def set_env(self):
+#         return 
+    
+
+
+
+
+
 if __name__ == "__main__":
     senderID = middleware.getSenderID()
     sender = middleware.Sender(senderID)
