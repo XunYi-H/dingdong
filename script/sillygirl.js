@@ -1,12 +1,9 @@
 /**
+ * @title JDCK自动更新脚本
+ * @author smallfawn
  * @version v1.0.0
- * @create_at 2024-08-10 15:23:58
- * @title 无名脚本
- * @description 🐒这个人很懒什么都没有留下
- * @author 佚名
- * @rule 杀杀杀
  */
-//定时0 0 6 * * * 测试版
+//定时0 0 6 * * * 测试版 搭配检测CK脚本
 let bucket = Bucket("smallfawn");
 let qlappid = bucket["ql_app_id"];
 let qlappsecret = bucket["ql_app_secret"];
@@ -181,8 +178,10 @@ function main() {
                         //未完待续
                         updateEnv(failEnv[j].id, cookie);
                         enableEnv(failEnv[j].id)
+                        return
                     }
                 }
+
             }
         }
         return console.log(`未找到匹配的失效账号`)
