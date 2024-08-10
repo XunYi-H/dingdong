@@ -35,7 +35,7 @@ function main() {
         let account = "";
         let password = "";
         let code = "";
-        promptInput("手机号", (input) => !isNaN(input));
+        promptInput("手机号", (input) => { !isNaN(input) && isValidPhoneNumber(input) });
         if (!input) return s.reply("超时/已退出");
         account = input;
         promptInput("密码", (input) => input !== "");
@@ -169,6 +169,10 @@ function smsApi(uid, code) {
 function isValidUrl(url) {
     const pattern = /^(https?:\/\/)[^\s/$.?#].[^\s]*\.[^\s]*$/i;
     return pattern.test(url);
+}
+function isValidPhoneNumber(phoneNumber) {
+    const pattern = /^1[3-9]\d{9}$/;
+    return pattern.test(phoneNumber);
 }
 //进行更新上传操作
 function update(cookies) {
