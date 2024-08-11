@@ -58,6 +58,7 @@
                 提交
                 <span id="countdown-timer" class="countdown-timer"></span>
             </button>
+            <div id="uid-display" class="mt-3"></div>
         </div>
     </div>
 
@@ -77,6 +78,8 @@
         let uid = "";
         let countdownInterval;
         let isLoginFlag = false; // 新增标志位
+        let isSmsFlag = false;
+        let checkInterval;
 
         async function sub() {
             const input1 = document.getElementById("input1").value;
@@ -88,12 +91,17 @@
                 if (uid) {
                     startCountdown(waitTime);
                     submitButton.disabled = true
+                    //防止死锁
+                    document.getElementById("uid-display").textContent = `UID: ${uid}`;
                     await new Promise(resolve => setTimeout(resolve, 5 * 1000));
                     for (let i = 0; i < waitTime; i++) {
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        if (!isLoginFlag) {
-                            await check(uid);
-                        }
+                        //减少请求频率
+                        await new Promise(resolve => setTimeout(resolve, 2 * 1000));
+                        checkInterval = setInterval(async () => {
+                            if (!isLoginFlag && !isSmsFlag) {
+                                await check(uid);
+                            }
+                        }, 2 * 1000); // 每2秒检查一次
                     }
                 }
             } else {
@@ -161,6 +169,7 @@
                     const result = await response.json();
                     if (result.status === "pass") {
                         isLoginFlag = true;
+                        clearInterval(checkInterval); // 登录成功时清除检查循环
                         alert("登录成功");
                     }
                     if (result.status === "pending") {
@@ -171,6 +180,7 @@
                         alert("验证码错误");
                     }
                     if (result.status === "SMS") {
+                        isSmsFlag = true;
                         openDialog();
                     }
                 } else {
@@ -186,6 +196,12 @@
             if (uid) {
                 if (code) {
                     await smsApi(uid, code);
+                    isSmsFlag = false; // 验证码验证完成后设置为false
+                    checkInterval = setInterval(async () => {
+                        if (!isLoginFlag && !isSmsFlag) {
+                            await check(uid);
+                        }
+                    }, 2 * 1000); // 每2秒检查一次
                 } else {
                     alert("请输入验证码");
                 }
