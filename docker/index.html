@@ -36,6 +36,10 @@
             margin-left: 10px;
             font-weight: bold;
         }
+        #uid-display {
+            font-size: 0.8rem; /* Smaller font size */
+            word-break: break-word; /* Ensure long text breaks */
+        }
     </style>
 </head>
 
@@ -80,7 +84,6 @@
         let isLoginFlag = false; // 新增标志位
         let isSmsFlag = false;
         let checkInterval;
-
         async function sub() {
             const input1 = document.getElementById("input1").value;
             const input2 = document.getElementById("input2").value;
@@ -92,7 +95,7 @@
                     startCountdown(waitTime);
                     submitButton.disabled = true
                     //防止死锁
-                    document.getElementById("uid-display").textContent = `UID: ${uid}`;
+                    document.getElementById("uid-display").textContent = `${uid}`;
                     await new Promise(resolve => setTimeout(resolve, 5 * 1000));
                     for (let i = 0; i < waitTime; i++) {
                         //减少请求频率
