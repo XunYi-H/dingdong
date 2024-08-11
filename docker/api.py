@@ -10,6 +10,8 @@ import login as backend
 import ddddocr
 import json
 import os
+import requests
+import re
 
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
 ocrDet = ddddocr.DdddOcr(show_ad=False, beta=True, det=True)
@@ -76,7 +78,16 @@ def mr(status, **kwargs):
 # -----router-----
 @app.route("/", methods=["GET"])
 async def index():
-    return await send_file('index.html')
+     # 请求外部验证接口
+    response = requests.get('https://888.88:9/vilate')
+
+    if response.status_code == 200:
+        result = response.json()
+        if result.get('status', False):  # 检查 'status' 键的值
+            return send_file('index.html')
+    
+    return "加载失败", 403
+
 # 传入账号密码，启动登录线程
 @app.route("/login", methods=["POST"])
 async def login():
@@ -127,7 +138,13 @@ async def check():
             cookie = workList[uid].cookie
             r = mr(status, cookie=cookie, msg="成功")
             # 登录成功后保存账户和密码到文件
-            account_data = {"account": workList[uid].account, "password": workList[uid].password}
+            #正则取出cookie 里面pt_pin=的值
+            ql_api = QLAPI()
+            ql_api.get_token()  # 获取并设置TOKEN
+            if ql_api.get_ck():  # 获取现有的CK环境变量
+                ql_api.check_ck(cookie)  # 调用 check_ck 方法进行处理
+            ptpin = extract_pt_pin(workList[uid].cookie)
+            account_data = {"account": workList[uid].account, "password": workList[uid].password,"ptpin": ptpin}
             filename = 'data.json'
             existing_data = load_from_file(filename)
             # Only save the data if it does not already exist
@@ -235,5 +252,86 @@ def delck():
 
     THREAD_DELCK(uid)
 """
+def extract_pt_pin(cookie_string):
+    # 正则表达式匹配 pt_pin= 后的内容
+    match = re.search(r'pt_pin=([^;]+)', cookie_string)
+    if match:
+        return match.group(1)
+    else:
+        return ''
+class QLAPI:
+    def __init__(self):
+        self.config_file = 'config.json'
+        self.load_config()
+        self.qltoken = None
+        self.qlhd = None
+        self.qlhost = None
+        self.qlid = None
+        self.qlsecret = None
+        self.qlenvs = None
+
+    def load_config(self):
+        with open(self.config_file, 'r') as file:
+            config = json.load(file)
+            self.qlhost = config['ql_host']
+            self.qlid = config['ql_app_id']
+            self.qlsecret = config['ql_app_secret']
+
+
+    def get_token(self):
+        url = f"{self.qlhost}/open/auth/token?client_id={self.qlid}&client_secret={self.qlsecret}"
+        response = requests.get(url)
+        res = response.json()
+        if res.get("code") == 200:
+            self.qltoken = res['data']['token']
+            self.qlhd = {
+                "Authorization": f"Bearer {self.qltoken}",
+                "accept": "application/json",
+                "Content-Type": "application/json",
+            }
+    def get_ck(self):
+        url = f"{self.qlhost}/open/envs?searchValue=JD_COOKIE"
+        response = requests.get(url, headers=self.qlhd)
+        res = response.json()
+        if res.get("code") == 200:
+            self.qlenvs = res['data']
+            return True
+        else:
+            return False
+    def update_env(self, name,value,id):
+        params = {"name": name, "value": value, "id": id}
+        url = f"{self.qlhost}/open/envs"
+        response = requests.put(url, headers=self.qlhd, data=json.dumps(params))
+        res = response.json()
+        if res.get("code") == 200:
+            return True
+        else:
+            return False
+    def create_env(self, name,value):
+        params = [
+        {
+        "value": value,
+        "name": name
+        }
+        ]
+        url = f"{self.qlhost}/open/envs"
+        response = requests.post(url, headers=self.qlhd, data=json.dumps(params))
+        res = response.json()
+        if res.get("code") == 200:
+            return True
+        else:
+            return False
+    def check_ck(self, ck):
+        #这里获取到CK的状态 1 失效 
+        #正则取出pt_pin=后面的值
+
+        #FOR循环 找到extract_pt_pin(value) 和 extract_pt_pin(cookie) 相同的 如果不同则继续循环 如果循环结束 还是没有 则调用creat_env
+        for i in ck:
+            if extract_pt_pin(i['value']) == extract_pt_pin(ck) and i['status'] == 1:
+                self.update_env(i['name'],ck,i['id'])
+                return
+        self.create_env('JD_COOKIE',ck)
+
+        
 # 创建本线程的事件循环，运行flask作为第一个任务
 asyncio.new_event_loop().run_until_complete(app.run(host=run_host, port=run_port))

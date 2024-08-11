@@ -1,0 +1,7 @@
+{
+    "name": "test",
+    "notice": "test",
+    "ql_host": "127.0.0.1:5700",
+    "ql_app_id": "XXX",
+    "ql_app_secret": "XXX"
+}
