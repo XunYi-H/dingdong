@@ -12,6 +12,8 @@
 未测试，看接口写的
 奥特曼插件，首先填好插件配置
 bug肯定有，看着改
+
+不是完整插件，没有定时更新ck，只是测试账号密码正常获取ck，提交青龙，同时保存到奥特曼
 '''
 import time
 import middleware,requests,re
@@ -58,7 +60,7 @@ class JD:
             for i in tong:
                 n += 1
                 phone = f'{i.split("#")[0][:3]}***{i.split("#")[0][:7]}'
-                msg += f"[{n}]:{phone}\n"                
+                msg += f"[{n}]:{phone}\n"
             self.sender.reply("选择账号序号获取cookie")
             xh = self.sender.listen(180000)
             if xh == "" or xh == "q":
