@@ -13,6 +13,7 @@ import os
 import requests
 import re
 
+
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
 ocrDet = ddddocr.DdddOcr(show_ad=False, beta=True, det=True)
 
