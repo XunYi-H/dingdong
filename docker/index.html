@@ -86,7 +86,6 @@
         let countdownInterval = null;
         let isLoginFlag = false; // 新增标志位
         let isSmsFlag = false;
-        let checkInterval = null;
         async function sub() {
             const input1 = document.getElementById("input1").value;
             const input2 = document.getElementById("input2").value;
@@ -99,15 +98,15 @@
                     submitButton.disabled = true;
                     //防止死锁
                     document.getElementById("uid-display").textContent = `${uid}`;
-                    await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
+                    await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
                     for (let i = 0; i < waitTime; i++) {
                         //减少请求频率
                         await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
-                        checkInterval = setInterval(async () => {
-                            if (!isLoginFlag && !isSmsFlag) {
-                                await check(uid);
-                            }
-                        }, 2 * 1000); // 每2秒检查一次
+                        if (!isLoginFlag && !isSmsFlag) {
+                            await check(uid);
+                        } else {
+                            return
+                        }
                     }
                 }
             } else {
@@ -176,8 +175,6 @@
                     if (result.status === "pass") {
                         isLoginFlag = true;
                         alert("登录成功");
-                        clearInterval(checkInterval); // 登录成功时清除检查循环
-                        checkInterval = null; // 清除定时器引用
                         enableSubmitButton();
                     }
                     if (result.status === "pending") {
@@ -205,13 +202,14 @@
                 if (code) {
                     await smsApi(uid, code);
                     isSmsFlag = false; // 验证码验证完成后设置为false
-                    // 清除旧的定时器，并重新设置检查
-                    clearInterval(checkInterval);
-                    checkInterval = setInterval(async () => {
-                        if (!isLoginFlag && !isSmsFlag) {
+                    for (let i = 0; i < waitTime; i++) {
+                        //减少请求频率
+                        await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
+                        if (!isSmsFlag) {
                             await check(uid);
                         }
-                    }, 2 * 1000); // 每2秒检查一次
+                    }
+
                 } else {
                     alert("请输入验证码");
                 }
