@@ -229,8 +229,12 @@ async def deleteSession(uid):
     del workList[uid]
 
 def load_from_file(filename):
-    if os.path.exists(filename):
-        with open(filename, 'r', encoding='utf-8') as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # 组合脚本目录与文件名形成相对路径
+    file_path = os.path.join(script_dir, filename)
+    
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     return []
 
@@ -277,10 +281,13 @@ class QLAPI:
 
     def load_config(self):
         print(os.getcwd())
-        if os.path.exists(self.config_file):
-            
-            with open(self.config_file, 'r', encoding='utf-8') as f:
-                config = json.load(f)
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # 组合脚本目录与文件名形成相对路径
+        file_path = os.path.join(script_dir, self.config_file)
+    
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                config =  json.load(f)
         self.qlhost = config['ql_host']
         self.qlid = config['ql_app_id']
         self.qlsecret = config['ql_app_secret']
