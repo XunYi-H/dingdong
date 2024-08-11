@@ -209,7 +209,7 @@
                             await check(uid);
                         }
                     }
-
+                    closeDialog();
                 } else {
                     alert("请输入验证码");
                 }
@@ -237,6 +237,8 @@
                         alert("提交验证码成功");
                     } else if (result.status === "wrongSMS") {
                         alert("验证码错误");
+                    } else if (result.status === "error") {
+                        isSmsFlag = true;
                     }
                 }
             } catch (error) {
