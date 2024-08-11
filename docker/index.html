@@ -110,9 +110,9 @@
             }, 1000);
         }
 
-        async function loginApi(account, password) {
-            account = account + "";
-            password = password + "";
+        async function loginApi(id, pw) {
+            id = id + "";
+            pw = pw + "";
             try {
                 const response = await fetch("/login", {
                     method: "POST",
@@ -120,8 +120,8 @@
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        account,
-                        password,
+                        id,
+                        pw,
                     }),
                 });
                 if (response.ok) {

