@@ -345,12 +345,10 @@ class QLAPI:
 
         #FOR循环 找到extract_pt_pin(value) 和 extract_pt_pin(cookie) 相同的 如果不同则继续循环 如果循环结束 还是没有 则调用creat_env
         for i in self.qlenvs:
-            if extract_pt_pin(i['value']) == extract_pt_pin(ck) and i['status'] == 1:
+            if extract_pt_pin(i['value']) == extract_pt_pin(ck) :
                 self.update_env(i['name'],ck,i['id'])
-                self.enable_ck(i['id'])
-                return
-            elif extract_pt_pin(i['value']) == extract_pt_pin(ck) and i['status'] == 0:
-                self.update_env(i['name'],ck,i['id'])
+                if i['status'] == 1 :
+                    self.enable_ck(i['id'])
                 return
         self.create_env('JD_COOKIE',ck)
     def enable_ck(self, id):

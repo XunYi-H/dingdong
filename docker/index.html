@@ -4,20 +4,37 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Responsive Form with Bootstrap and JavaScript</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+    <title>GouDongGoCar</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.css" rel="stylesheet" />
     <style>
         body {
             background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
         }
 
         .form-container {
+            width: 90%;
             max-width: 400px;
             margin: auto;
             padding: 20px;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            /* 调整标题字体大小 */
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            /* 调整标签字体大小 */
+        }
+
+        .form-group input {
+            font-size: 0.9rem;
+            /* 调整输入框字体大小 */
         }
 
         .dialog-content {
@@ -28,8 +45,10 @@
             border: none;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
+            width: 90%;
             max-width: 400px;
+            margin: auto;
+            /* 在移动设备上居中对话框 */
         }
 
         .countdown-timer {
@@ -39,9 +58,22 @@
 
         #uid-display {
             font-size: 0.8rem;
-            /* Smaller font size */
             word-break: break-word;
-            /* Ensure long text breaks */
+        }
+
+        @media (max-width: 576px) {
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .form-container {
+                padding: 15px;
+            }
+
+            .form-group label,
+            .form-group input {
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
@@ -127,7 +159,12 @@
                 }
             }, 1000);
         }
-
+        function clearCountdown() {
+            clearInterval(countdownInterval);
+            const countdownTimer = document.getElementById("countdown-timer");
+            countdownTimer.textContent = "";
+            document.getElementById("submit-button").disabled = false;
+        }
         async function loginApi(id, pw) {
             id = id + "";
             pw = pw + "";
@@ -176,10 +213,17 @@
                         isLoginFlag = true;
                         alert("登录成功");
                         enableSubmitButton();
+                        clearCountdown()
                     }
                     if (result.status === "pending") {
                     }
                     if (result.status === "error") {
+                        if (result.msg.indexOf("未找到") > -1) {
+                            isLoginFlag = true;
+                            //提示重新登录
+                            alert("请重新登录");
+                        }
+                        alert("登录失败" + result.msg);
                     }
                     if (result.status === "wrongSMS") {
                         alert("验证码错误");
@@ -235,9 +279,11 @@
                     const result = await response.json();
                     if (result.status === "pass") {
                         alert("提交验证码成功");
+                        clearCountdown();
                     } else if (result.status === "wrongSMS") {
                         alert("验证码错误");
                     } else if (result.status === "error") {
+                        alert("提交验证码失败" + result.msg);
                         isSmsFlag = true;
                     }
                 }
