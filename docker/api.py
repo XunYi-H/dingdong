@@ -79,6 +79,9 @@ def mr(status, **kwargs):
 @app.route("/", methods=["GET"])
 async def index():
      # 请求外部验证接口
+    return send_file('index.html')
+
+    """
     response = requests.get('https://888.88:9/vilate')
 
     if response.status_code == 200:
@@ -87,6 +90,7 @@ async def index():
             return send_file('index.html')
     
     return "加载失败", 403
+    """
 
 # 传入账号密码，启动登录线程
 @app.route("/login", methods=["POST"])
