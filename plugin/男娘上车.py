@@ -52,12 +52,28 @@ class JD:
             else:
                 self.sender.reply("手机号错误")
         else:
-            phone = tong.split("#")[0]
-            password = tong.split("#")[1]
-            self.l(phone,password)            
-            
+            msg = ""
+            tong = eval(tong)
+            n = 0
+            for i in tong:
+                n += 1
+                phone = f'{i.split("#")[0][:3]}***{i.split("#")[0][:7]}'
+                msg += f"[{n}]:{phone}\n"                
+            self.sender.reply("选择账号序号获取cookie")
+            xh = self.sender.listen(180000)
+            if xh == "" or xh == "q":
+                self.sender.reply("退出")
+                exit()
+            elif int(xh)-1 <= len(tong):
+                phone = tong[int(xh)-1].split("#")[0]
+                password = tong[int(xh)-1].split("#")[1]
+                self.l(phone,password)
+            else:
+                self.sender.reply("错误退出")
+                exit()
+
     def l(self,phone,password):
-        
+
         # 开始登录login
         loginData = self.login(phone, password)
         if loginData:
@@ -130,7 +146,7 @@ class JD:
                                                     if tong == "":
                                                         old = [f"{phone}#{password}"]
                                                         middleware.bucketSet(self.tongname, self.user, f"{old}")
-                                                        return 
+                                                        return
                                                     else:
                                                         tong = eval(tong)
                                                         a = 0
@@ -189,7 +205,7 @@ class JD:
         else:
             self.sender.reply("服务错误")
 
-    
+
 
     def login(self,phone,pd):
         res = requests.post(f"{self.host}/login",json={"id":phone,"password":pd})
