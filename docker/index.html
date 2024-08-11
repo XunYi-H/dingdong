@@ -73,6 +73,7 @@
     </dialog>
 
     <script>
+        let waitTime = 60;
         let uid = "";
         let countdownInterval;
 
@@ -84,9 +85,9 @@
             if (input1 && input2) {
                 await loginApi(input1, input2);
                 if (uid) {
-                    startCountdown(15);
+                    startCountdown(waitTime);
                     submitButton.disabled = true
-                    for (let i = 0; i < 15; i++) {
+                    for (let i = 0; i < waitTime; i++) {
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         await check(uid);
                     }

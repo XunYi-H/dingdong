@@ -216,6 +216,12 @@ def save_to_file(filename, data):
             json.dump(data, f, ensure_ascii=False, indent=4)
     except Exception as e:
         print(f"保存到文件时出错: {e}")
+# 新增的 GET 路由
+@app.route("/get", methods=["GET"])
+async def get_data():
+    filename = 'data.json'
+    data = load_from_file(filename)
+    return jsonify(data)
 """
 @app.route("/delck", methods=["POST"])
 def delck():
