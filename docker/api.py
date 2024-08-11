@@ -278,7 +278,7 @@ class QLAPI:
         self.qlhost = None
         self.qlid = None
         self.qlsecret = None
-        self.qlenvs = None
+        self.qlenvs = []
 
     def load_config(self):
         print(os.getcwd())
@@ -348,6 +348,9 @@ class QLAPI:
             if extract_pt_pin(i['value']) == extract_pt_pin(ck) and i['status'] == 1:
                 self.update_env(i['name'],ck,i['id'])
                 self.enable_ck(i['id'])
+                return
+            elif extract_pt_pin(i['value']) == extract_pt_pin(ck) and i['status'] == 0:
+                self.update_env(i['name'],ck,i['id'])
                 return
         self.create_env('JD_COOKIE',ck)
     def enable_ck(self, id):
