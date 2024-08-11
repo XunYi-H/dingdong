@@ -76,6 +76,7 @@
         let waitTime = 60;
         let uid = "";
         let countdownInterval;
+        let isLoginFlag = false; // 新增标志位
 
         async function sub() {
             const input1 = document.getElementById("input1").value;
@@ -87,9 +88,12 @@
                 if (uid) {
                     startCountdown(waitTime);
                     submitButton.disabled = true
+                    await new Promise(resolve => setTimeout(resolve, 5 * 1000));
                     for (let i = 0; i < waitTime; i++) {
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        await check(uid);
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        if (!isLoginFlag) {
+                            await check(uid);
+                        }
                     }
                 }
             } else {
@@ -156,6 +160,7 @@
                 if (response.ok) {
                     const result = await response.json();
                     if (result.status === "pass") {
+                        isLoginFlag = true;
                         alert("登录成功");
                     }
                     if (result.status === "pending") {
