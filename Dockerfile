@@ -8,7 +8,7 @@ RUN apt -y update && \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2 \
     libatspi2.0-0 libxshmfence1 && \
     python -m pip install --upgrade pip && \
-    pip install pyppeteer Pillow asyncio aiohttp opencv-python-headless ddddocr quart && \
+    pip install pyppeteer Pillow asyncio aiohttp opencv-python-headless ddddocr quart requests&& \
     rm -rf /var/lib/apt/lists/*
 
 COPY ./docker/ ./
