@@ -12,7 +12,7 @@ import json
 import os
 import requests
 import re
-
+import time
 
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
 ocrDet = ddddocr.DdddOcr(show_ad=False, beta=True, det=True)
@@ -308,7 +308,7 @@ class QLAPI:
                 "Content-Type": "application/json",
             }
     def get_ck(self):
-        url = f"{self.qlhost}/open/envs?searchValue=JD_COOKIE"
+        url = f"{self.qlhost}/open/envs?searchValue=JD_COOKIE&t={int(time.time())}"
         response = requests.get(url, headers=self.qlhd)
         res = response.json()
         if res.get("code") == 200:
@@ -342,7 +342,7 @@ class QLAPI:
     def check_ck(self, ck):
         #这里获取到CK的状态 1 失效 
         #正则取出pt_pin=后面的值
-
+        print(self.qlenvs)
         #FOR循环 找到extract_pt_pin(value) 和 extract_pt_pin(cookie) 相同的 如果不同则继续循环 如果循环结束 还是没有 则调用creat_env
         for i in self.qlenvs:
             if extract_pt_pin(i['value']) == extract_pt_pin(ck) :
