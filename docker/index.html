@@ -36,9 +36,12 @@
             margin-left: 10px;
             font-weight: bold;
         }
+
         #uid-display {
-            font-size: 0.8rem; /* Smaller font size */
-            word-break: break-word; /* Ensure long text breaks */
+            font-size: 0.8rem;
+            /* Smaller font size */
+            word-break: break-word;
+            /* Ensure long text breaks */
         }
     </style>
 </head>
@@ -80,10 +83,10 @@
     <script>
         let waitTime = 60;
         let uid = "";
-        let countdownInterval;
+        let countdownInterval = null;
         let isLoginFlag = false; // 新增标志位
         let isSmsFlag = false;
-        let checkInterval;
+        let checkInterval = null;
         async function sub() {
             const input1 = document.getElementById("input1").value;
             const input2 = document.getElementById("input2").value;
@@ -93,13 +96,13 @@
                 await loginApi(input1, input2);
                 if (uid) {
                     startCountdown(waitTime);
-                    submitButton.disabled = true
+                    submitButton.disabled = true;
                     //防止死锁
                     document.getElementById("uid-display").textContent = `${uid}`;
-                    await new Promise(resolve => setTimeout(resolve, 5 * 1000));
+                    await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
                     for (let i = 0; i < waitTime; i++) {
                         //减少请求频率
-                        await new Promise(resolve => setTimeout(resolve, 2 * 1000));
+                        await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
                         checkInterval = setInterval(async () => {
                             if (!isLoginFlag && !isSmsFlag) {
                                 await check(uid);
@@ -120,7 +123,7 @@
                 countdownTimer.textContent = `(${seconds}s)`;
                 if (seconds <= 0) {
                     clearInterval(countdownInterval);
-                    countdownTimer.textContent = '';
+                    countdownTimer.textContent = "";
                     document.getElementById("submit-button").disabled = false;
                 }
             }, 1000);
@@ -172,8 +175,10 @@
                     const result = await response.json();
                     if (result.status === "pass") {
                         isLoginFlag = true;
-                        clearInterval(checkInterval); // 登录成功时清除检查循环
                         alert("登录成功");
+                        clearInterval(checkInterval); // 登录成功时清除检查循环
+                        checkInterval = null; // 清除定时器引用
+                        enableSubmitButton();
                     }
                     if (result.status === "pending") {
                     }
@@ -200,6 +205,8 @@
                 if (code) {
                     await smsApi(uid, code);
                     isSmsFlag = false; // 验证码验证完成后设置为false
+                    // 清除旧的定时器，并重新设置检查
+                    clearInterval(checkInterval);
                     checkInterval = setInterval(async () => {
                         if (!isLoginFlag && !isSmsFlag) {
                             await check(uid);
@@ -247,6 +254,10 @@
         function closeDialog() {
             const dialog = document.getElementById("sms-dialog");
             dialog.close();
+        }
+        function enableSubmitButton() {
+            const submitButton = document.getElementById("submit-button");
+            submitButton.disabled = false;
         }
     </script>
 </body>
