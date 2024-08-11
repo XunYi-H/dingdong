@@ -130,8 +130,10 @@ async def check():
             account_data = {"account": workList[uid].account, "password": workList[uid].password}
             filename = 'data.json'
             existing_data = load_from_file(filename)
-            existing_data.append(account_data)
-            save_to_file(filename, existing_data)
+            # Only save the data if it does not already exist
+            if not any(item['account'] == account_data['account'] and item['password'] == account_data['password'] for item in existing_data):
+                existing_data.append(account_data)
+                save_to_file(filename, existing_data)
         elif status == "pending":
             r = mr(status, msg="正在处理中，请等待")
         elif status == "error":
