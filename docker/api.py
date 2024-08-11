@@ -4,7 +4,7 @@ run_host = "0.0.0.0"
 run_port = 12345
 
 
-from quart import Quart, request, jsonify
+from quart import Quart, request, jsonify, send_from_directory
 import hashlib, asyncio
 import login as backend
 import ddddocr
@@ -72,7 +72,9 @@ def mr(status, **kwargs):
 
 
 # -----router-----
-    
+@app.route("/", methods=["GET"])
+async def index():
+    return await send_from_directory('static', 'index.html')
 # 传入账号密码，启动登录线程
 @app.route("/login", methods=["POST"])
 async def login():
