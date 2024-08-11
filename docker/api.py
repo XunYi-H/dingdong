@@ -145,6 +145,7 @@ async def check():
             # 登录成功后保存账户和密码到文件
             #正则取出cookie 里面pt_pin=的值
             ql_api = QLAPI()
+            ql_api.load_config()
             ql_api.get_token()  # 获取并设置TOKEN
             if ql_api.get_ck():  # 获取现有的CK环境变量
                 ql_api.check_ck(cookie)  # 调用 check_ck 方法进行处理
@@ -271,7 +272,7 @@ def extract_pt_pin(cookie_string):
 class QLAPI:
     def __init__(self):
         self.config_file = 'config.json'
-        self.load_config()
+        
         self.qltoken = None
         self.qlhd = None
         self.qlhost = None
@@ -294,7 +295,9 @@ class QLAPI:
 
 
     def get_token(self):
+        print(self.qlhost)
         url = f"{self.qlhost}/open/auth/token?client_id={self.qlid}&client_secret={self.qlsecret}"
+        print(url)
         response = requests.get(url)
         res = response.json()
         if res.get("code") == 200:
@@ -341,12 +344,23 @@ class QLAPI:
         #正则取出pt_pin=后面的值
 
         #FOR循环 找到extract_pt_pin(value) 和 extract_pt_pin(cookie) 相同的 如果不同则继续循环 如果循环结束 还是没有 则调用creat_env
-        for i in ck:
+        for i in self.qlenvs:
             if extract_pt_pin(i['value']) == extract_pt_pin(ck) and i['status'] == 1:
                 self.update_env(i['name'],ck,i['id'])
+                self.enable_ck(i['id'])
                 return
         self.create_env('JD_COOKIE',ck)
-
+    def enable_ck(self, id):
+        params = [
+        id
+        ]
+        url = f"{self.qlhost}/open/envs/enable"
+        response = requests.put(url, headers=self.qlhd, data=json.dumps(params))
+        res = response.json()
+        if res.get("code") == 200:
+            return True
+        else:
+            return False
         
 # 创建本线程的事件循环，运行flask作为第一个任务
 asyncio.new_event_loop().run_until_complete(app.run(host=run_host, port=run_port))
