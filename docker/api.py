@@ -276,11 +276,14 @@ class QLAPI:
         self.qlenvs = None
 
     def load_config(self):
-        with open(self.config_file, 'r') as file:
-            config = json.load(file)
-            self.qlhost = config['ql_host']
-            self.qlid = config['ql_app_id']
-            self.qlsecret = config['ql_app_secret']
+        print(os.getcwd())
+        if os.path.exists(self.config_file):
+            
+            with open(self.config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+        self.qlhost = config['ql_host']
+        self.qlid = config['ql_app_id']
+        self.qlsecret = config['ql_app_secret']
 
 
     def get_token(self):
