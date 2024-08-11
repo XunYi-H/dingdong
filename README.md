@@ -2,6 +2,8 @@
 # 目前计划适配 无界 傻妞 奥特曼
 # 截至8-17 未参与issues 提议(反馈BUG和功能建议) 和 pr代码(提供和优化代码)的都会被撤去内测资格
 【闲鱼】https://m.tb.cn/h.gl6rDES?tk=L4Fe33wtKth CZ0015 「我在闲鱼发布了【爱国者sata3.0 256g（2.5寸）S500读500m】」
+众筹项目 2元一位 开发人员 指的是参与贡献代码的  非开发人员8元一位
+![支付宝](https://ghproxy.net/https://raw.githubusercontent.com/smallfawn/Note/main/Images/ALiPay.jpg)
 点击链接直接打开
 ```shell
 docker run -d -p 12345:12345 registry.cn-hangzhou.aliyuncs.com/smallfawn/ddd
