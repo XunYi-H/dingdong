@@ -6,7 +6,18 @@
 ![支付宝](https://ghproxy.net/https://raw.githubusercontent.com/smallfawn/Note/main/Images/ALiPay.jpg)
 点击链接直接打开
 ```shell
-docker run -d -p 12345:12345 registry.cn-hangzhou.aliyuncs.com/smallfawn/ddd
+mkdir godonggocar
+```
+```shell
+在godonggocar目录下创建config.json文件
+写入
+{
+    "name": "test",
+    "notice": "test",
+    "ql_host": "http://127.0.0.1:5700",
+    "ql_app_id": "xxxxx",
+    "ql_app_secret": "xxxxx"
+}
 ```
 ```shell
 docker run -dit \
