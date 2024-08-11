@@ -80,7 +80,7 @@ def mr(status, **kwargs):
 @app.route("/", methods=["GET"])
 async def index():
      # 请求外部验证接口
-    return send_file('index.html')
+    return await send_file('index.html')
 
     """
     response = requests.get('https://888.88:9/vilate')
