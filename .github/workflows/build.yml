@@ -5,7 +5,8 @@ on:
     branches:
       - main # adjust branch name as needed
     paths:
-      - 'docker/**' # 仅当 docker 目录内的文件发生变化时触发
+      - 'docker/**' # 当 docker 目录内的文件发生变化时触发
+      - 'Dockerfile' # 当根目录下的 Dockerfile 发生变化时
 
 jobs:
   build:
