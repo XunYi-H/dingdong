@@ -1,49 +1,6 @@
 # 请合作者完善plugin 里面的两个机器人框架的插件 和script机器人定时执行脚本
 # 目前计划适配 无界 傻妞 奥特曼
 # 截至8-17 未参与issues 提议(反馈BUG和功能建议) 和 pr代码(提供和优化代码)的都会被撤去内测资格
-# 目前已知BUG api.py
-```py
-ql_api = QLAPI()
-中QLAPI Class 在加载文件获取青龙配置信息 会报错 具体信息为
-Traceback (most recent call last):
-File "/usr/local/lib/python3.12/site-packages/quart/app.py", line 1403, in handle_request
-return await self.full_dispatch_request(request_context)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "/usr/local/lib/python3.12/site-packages/quart/app.py", line 1441, in full_dispatch_request
-result = await self.handle_user_exception(error)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "/usr/local/lib/python3.12/site-packages/quart/app.py", line 1029, in handle_user_exception
-raise error
-File "/usr/local/lib/python3.12/site-packages/quart/app.py", line 1439, in full_dispatch_request
-result = await self.dispatch_request(request_context)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "/usr/local/lib/python3.12/site-packages/quart/app.py", line 1535, in dispatch_request
-return await self.ensure_async(handler)(**request_.view_args) # type: ignore
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "/app/api.py", line 148, in check
-ql_api.get_token() # 获取并设置TOKEN
-^^^^^^^^^^^^^^^^^^
-File "/app/api.py", line 298, in get_token
-response = requests.get(url)
-^^^^^^^^^^^^^^^^^
-File "/usr/local/lib/python3.12/site-packages/requests/api.py", line 73, in get
-return request("get", url, params=params, **kwargs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "/usr/local/lib/python3.12/site-packages/requests/api.py", line 59, in request
-return session.request(method=method, url=url, **kwargs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "/usr/local/lib/python3.12/site-packages/requests/sessions.py", line 575, in request
-prep = self.prepare_request(req)
-^^^^^^^^^^^^^^^^^^^^^^^^^
-File "/usr/local/lib/python3.12/site-packages/requests/sessions.py", line 484, in prepare_request
-p.prepare(
-File "/usr/local/lib/python3.12/site-packages/requests/models.py", line 367, in prepare
-self.prepare_url(url, params)
-File "/usr/local/lib/python3.12/site-packages/requests/models.py", line 438, in prepare_url
-raise MissingSchema(
-requests.exceptions.MissingSchema: Invalid URL 'None/open/auth/token?client_id=None&client_secret=None': No scheme supplied. Perhaps you meant https://None/open/auth/token?client_id=None&client_secret=None?
-希望会Py的解决一下
-```
 【闲鱼】https://m.tb.cn/h.gl6rDES?tk=L4Fe33wtKth CZ0015 「我在闲鱼发布了【爱国者sata3.0 256g（2.5寸）S500读500m】」
 点击链接直接打开
 ```shell
