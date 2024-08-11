@@ -38,7 +38,7 @@ class account:
             self.isAuto = data.get("isAuto", False)
             if not self.account:
                 raise ValueError("账号不能为空")
-                if type == "password" and not self.password:
+            if type == "password" and not self.password:
                     raise ValueError("密码不能为空")
 
             c = str(self.account) + str(self.password)
