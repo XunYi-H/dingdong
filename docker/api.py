@@ -272,7 +272,7 @@ def extract_pt_pin(cookie_string):
 class QLAPI:
     def __init__(self):
         self.config_file = 'config.json'
-        
+        self.ql_isNewVersion = True
         self.qltoken = None
         self.qlhd = None
         self.qlhost = None
@@ -281,7 +281,7 @@ class QLAPI:
         self.qlenvs = []
 
     def load_config(self):
-        print(os.getcwd())
+        #print(os.getcwd())
         script_dir = os.path.dirname(os.path.abspath(__file__))
         # 组合脚本目录与文件名形成相对路径
         file_path = os.path.join(script_dir, self.config_file)
@@ -292,10 +292,11 @@ class QLAPI:
         self.qlhost = config['ql_host']
         self.qlid = config['ql_app_id']
         self.qlsecret = config['ql_app_secret']
+        self.ql_isNewVersion = config['ql_isNewVersion']
 
 
     def get_token(self):
-        print(self.qlhost)
+        #print(self.qlhost)
         url = f"{self.qlhost}/open/auth/token?client_id={self.qlid}&client_secret={self.qlsecret}"
         print(url)
         response = requests.get(url)
@@ -317,7 +318,10 @@ class QLAPI:
         else:
             return False
     def update_env(self, name,value,id):
-        params = {"name": name, "value": value, "id": id}
+        if self.ql_isNewVersion:
+            params = {"name": name, "value": value, "id": id}
+        else:
+            params = {"name": name, "value": value, "_id": id}
         url = f"{self.qlhost}/open/envs"
         response = requests.put(url, headers=self.qlhd, data=json.dumps(params))
         res = response.json()
@@ -342,13 +346,19 @@ class QLAPI:
     def check_ck(self, ck):
         #这里获取到CK的状态 1 失效 
         #正则取出pt_pin=后面的值
-        print(self.qlenvs)
+        #print(self.qlenvs)
         #FOR循环 找到extract_pt_pin(value) 和 extract_pt_pin(cookie) 相同的 如果不同则继续循环 如果循环结束 还是没有 则调用creat_env
         for i in self.qlenvs:
             if extract_pt_pin(i['value']) == extract_pt_pin(ck) :
-                self.update_env(i['name'],ck,i['id'])
+                if self.ql_isNewVersion:
+                    self.update_env(i['name'],ck,i['id'])
+                else:
+                    self.update_env(i['name'],ck,i['_id'])
                 if i['status'] == 1 :
-                    self.enable_ck(i['id'])
+                    if self.ql_isNewVersion:
+                        self.enable_ck(i['id'])
+                    else:
+                        self.enable_ck(i['_id'])
                 return
         self.create_env('JD_COOKIE',ck)
     def enable_ck(self, id):
