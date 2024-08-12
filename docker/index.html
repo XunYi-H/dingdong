@@ -136,13 +136,19 @@
                     document.getElementById("uid-display").textContent = `${uid}`;
                     await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
                     for (let i = 0; i < waitTime; i++) {
-                        //减少请求频率
                         await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
                         if (!isLoginFlag && !isSmsFlag) {
                             await check(uid);
                         } else {
-                            return
+                            break;
                         }
+                    }
+                    // 登录完成或发生错误后重置标志位，使用户可以再次提交
+                    if (isLoginFlag || isSmsFlag) {
+                        isLoginFlag = false;
+                        isSmsFlag = false;
+                        clearCountdown();  // 清除倒计时
+                        enableSubmitButton();  // 允许再次提交
                     }
                 }
             } else {
