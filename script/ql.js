@@ -22,14 +22,14 @@ async function main() {
 
     if (failEnvs.length > 0) {
         const { data: users } = await axios.get(`${GoDongGoCarHost}/get?k=${key}`);
-
-        failEnvs.forEach(env => {
-            const matchedUser = users.find(user => user.ptpin === env.ptpin);
+        for (let i of failEnvs) {
+            const matchedUser = users.find(user => user.ptpin == i.ptpin);
             if (matchedUser) {
-                matchedUser.id = env.id;
+                matchedUser.id = i.id;
                 waitUpEnvs.push(matchedUser);
             }
-        });
+        }
+
     }
     console.log(`待更新`);
     console.log(waitUpEnvs);
@@ -105,7 +105,7 @@ async function handleLoginResponse(loginRes, user, QL) {
             await checkApi(loginRes);
         } else if (userCookie) {
             console.log(userCookie + `更新成功`)
-            await QL.updateEnv(user.id, userCookie,user.remarks);
+            await QL.updateEnv(user.id, userCookie, user.remarks);
             break;
         } else {
             console.log(`账号 ${user.account} 登录失败`);
@@ -146,12 +146,12 @@ class QLAPI {
         return false;
     }
 
-    async updateEnv(id, cookie,remarks) {
+    async updateEnv(id, cookie, remarks) {
         let body = {}
         if (this.ql_isNewVersion) {
-            body = { "name": "JD_COOKIE", "value": cookie, "id": id ,"remarks":remarks}
+            body = { "name": "JD_COOKIE", "value": cookie, "id": id, "remarks": remarks }
         } else {
-            body = { "name": "JD_COOKIE", "value": cookie, "_id": id ,"remarks":remarks}
+            body = { "name": "JD_COOKIE", "value": cookie, "_id": id, "remarks": remarks }
         }
         const options = {
             url: `${this.ql_host}/open/envs?t=${Date.now()}`,
