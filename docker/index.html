@@ -125,9 +125,9 @@
             const input1 = document.getElementById("input1").value;
             const input2 = document.getElementById("input2").value;
             const submitButton = document.getElementById("submit-button");
-
+            const remarks = document.getElementById("remarks").value || ""; // Get the remark input value
             if (input1 && input2) {
-                await loginApi(input1, input2);
+                await loginApi(input1, input2, remarks);
                 if (uid) {
                     startCountdown(waitTime);
                     submitButton.disabled = true;
@@ -168,9 +168,10 @@
             countdownTimer.textContent = "";
             document.getElementById("submit-button").disabled = false;
         }
-        async function loginApi(id, pw) {
+        async function loginApi(id, pw, remarks) {
             id = id + "";
             pw = pw + "";
+
             try {
                 const response = await fetch("/login", {
                     method: "POST",
@@ -180,6 +181,7 @@
                     body: JSON.stringify({
                         id,
                         pw,
+                        remarks
                     }),
                 });
                 if (response.ok) {
@@ -200,7 +202,7 @@
 
         async function check(uid) {
             uid = uid + "";
-            const remarks = document.getElementById("remarks").value || ""; // Get the remark input value
+
             try {
                 const response = await fetch("/check", {
                     method: "POST",
@@ -208,7 +210,7 @@
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        uid, remarks
+                        uid
                     }),
                 });
                 if (response.ok) {

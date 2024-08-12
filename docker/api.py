@@ -34,6 +34,7 @@ class account:
             self.status = "pending"
             self.account = data.get("id", None)
             self.type = data.get("type", None)
+            self.remarks = data.get("remarks", None)
             self.password = data.get("pw", None)
             self.isAuto = data.get("isAuto", False)
             if not self.account:
@@ -96,7 +97,7 @@ async def index():
 # 传入账号密码，启动登录线程
 @app.route("/login", methods=["POST"])
 async def login():
-    print("login")
+    #print("login")
     data = await request.get_json()
     if "type" not in data:
         data["type"] = "password"
@@ -135,7 +136,6 @@ async def THREAD_DO_LOGIN(workList, uid, ocr, ocrDet):
 async def check():
     data = await request.get_json()
     uid = data.get("uid", None)
-    remarks = data.get("remarks", None)
     r = None
     # 账号列表有记录
     if workList.get(uid, ""):
@@ -149,9 +149,9 @@ async def check():
             ql_api.load_config()
             ql_api.get_token()  # 获取并设置TOKEN
             if ql_api.get_ck():  # 获取现有的CK环境变量
-                ql_api.check_ck(cookie,remarks)  # 调用 check_ck 方法进行处理
+                ql_api.check_ck(cookie,workList[uid].remarks)  # 调用 check_ck 方法进行处理
             ptpin = extract_pt_pin(workList[uid].cookie)
-            account_data = {"account": workList[uid].account, "password": workList[uid].password,"ptpin": ptpin,"remarks":remarks}
+            account_data = {"account": workList[uid].account, "password": workList[uid].password,"ptpin": ptpin,"remarks":workList[uid].remarks}
             filename = 'data.json'
             existing_data = load_from_file(filename)
             # Only save the data if it does not already exist
