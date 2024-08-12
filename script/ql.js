@@ -1,11 +1,11 @@
 const axios = require('axios');
 
-const ql_host = "http://127.0.0.1:5700";
-const GoDongGoCarHost = "http://127.0.0.1:12345";
-const ql_app_id = "aaaaa";
-const ql_app_secret = "bbbbb";
+const ql_host = "http://192.168.50.250:8888";
+const GoDongGoCarHost = "http://192.168.50.250:5000";
+const ql_app_id = "WXfUoEY6-aD5";
+const ql_app_secret = "3cW7-TRqLL-g_nUtvgCOC7d5";
 const ql_isNewVersion = true; // 是否为青龙新版本（>= 2.11）
-const key = 'ababab'; //密钥
+const key = 'f327047d64044913a93a5324cee9cab1'; //密钥
 
 let checkRes = false;
 let userCookie = null;
@@ -37,7 +37,6 @@ async function main() {
 
     for (const user of waitUpEnvs) {
         const loginRes = await loginApi(user.account, user.password, user.remarks);
-
         if (loginRes) {
             await handleLoginResponse(loginRes, user, QL);
         } else {
@@ -106,7 +105,7 @@ async function handleLoginResponse(loginRes, user, QL) {
             await checkApi(loginRes);
         } else if (userCookie) {
             console.log(userCookie + `更新成功`)
-            await QL.updateEnv(user.id, userCookie);
+            await QL.updateEnv(user.id, userCookie,user.remarks);
             break;
         } else {
             console.log(`账号 ${user.account} 登录失败`);
@@ -147,12 +146,12 @@ class QLAPI {
         return false;
     }
 
-    async updateEnv(id, cookie) {
+    async updateEnv(id, cookie,remarks) {
         let body = {}
         if (this.ql_isNewVersion) {
-            body = { "name": "JD_COOKIE", "value": cookie, "id": id }
+            body = { "name": "JD_COOKIE", "value": cookie, "id": id ,"remarks":remarks}
         } else {
-            body = { "name": "JD_COOKIE", "value": cookie, "_id": id }
+            body = { "name": "JD_COOKIE", "value": cookie, "_id": id ,"remarks":remarks}
         }
         const options = {
             url: `${this.ql_host}/open/envs?t=${Date.now()}`,
