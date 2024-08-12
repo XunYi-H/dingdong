@@ -151,7 +151,7 @@ async def check():
             if ql_api.get_ck():  # 获取现有的CK环境变量
                 ql_api.check_ck(cookie,remarks)  # 调用 check_ck 方法进行处理
             ptpin = extract_pt_pin(workList[uid].cookie)
-            account_data = {"account": workList[uid].account, "password": workList[uid].password,"ptpin": ptpin}
+            account_data = {"account": workList[uid].account, "password": workList[uid].password,"ptpin": ptpin,"remarks":remarks}
             filename = 'data.json'
             existing_data = load_from_file(filename)
             # Only save the data if it does not already exist
