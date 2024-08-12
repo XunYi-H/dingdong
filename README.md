@@ -19,6 +19,7 @@ mkdir godonggocar
     "ql_app_secret": "xxxxx",
     "ql_isNewVersion":true
 }
+ql_isNewVersion 如果大于等于2.11 则默认true 小于则false
 ```
 ```shell
 docker run -dit \
