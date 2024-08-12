@@ -5,7 +5,7 @@ const GoDongGoCarHost = "http://127.0.0.1:12345";
 const ql_app_id = "aaaaa";
 const ql_app_secret = "bbbbb";
 const ql_isNewVersion = true; // 是否为青龙新版本（>= 2.11）
-const key = 'AAAAA';
+const key = 'ababab'; //密钥
 
 let checkRes = false;
 let userCookie = null;
@@ -31,9 +31,13 @@ async function main() {
             }
         });
     }
+    console.log(`待更新`);
+    console.log(waitUpEnvs);
+
 
     for (const user of waitUpEnvs) {
-        const loginRes = await loginApi(user.account, user.password);
+        const loginRes = await loginApi(user.account, user.password, user.remarks);
+
         if (loginRes) {
             await handleLoginResponse(loginRes, user, QL);
         } else {
@@ -50,10 +54,10 @@ async function loginApi(id, pw) {
             'Content-Type': 'application/json',
             'User-Agent': 'GoDongGoCar',
         },
-        data: { id, pw },
+        data: JSON.stringify({ id, pw }),
     };
 
-    const { data: loginRes } = await axios(options);
+    const { data: loginRes } = await axios.request(options);
 
     return loginRes.status === 'pass' ? loginRes.uid : false;
 }
@@ -66,10 +70,10 @@ async function checkApi(uid) {
             'Content-Type': 'application/json',
             'User-Agent': 'GoDongGoCar',
         },
-        data: { uid },
+        data: JSON.stringify({ uid }),
     };
 
-    const { data: checkResData } = await axios(options);
+    const { data: checkResData } = await axios.request(options);
     checkRes = true;
 
     switch (checkResData.status) {
@@ -96,13 +100,12 @@ async function checkApi(uid) {
 async function handleLoginResponse(loginRes, user, QL) {
     console.log('等待 2s');
     await delay(2000);
-
     for (let i = 0; i < 30; i++) {
         await delay(1000);
-
         if (!checkRes) {
             await checkApi(loginRes);
         } else if (userCookie) {
+            console.log(userCookie + `更新成功`)
             await QL.updateEnv(user.id, userCookie);
             break;
         } else {
@@ -136,7 +139,7 @@ class QLAPI {
             method: 'GET',
         };
 
-        const { data: tokenRes } = await axios(options);
+        const { data: tokenRes } = await axios.request(options);
         if (tokenRes.code === 200) {
             this.ql_token = tokenRes.data.token;
             return this.ql_token;
@@ -145,6 +148,12 @@ class QLAPI {
     }
 
     async updateEnv(id, cookie) {
+        let body = {}
+        if (this.ql_isNewVersion) {
+            body = { "name": "JD_COOKIE", "value": cookie, "id": id }
+        } else {
+            body = { "name": "JD_COOKIE", "value": cookie, "_id": id }
+        }
         const options = {
             url: `${this.ql_host}/open/envs?t=${Date.now()}`,
             method: 'PUT',
@@ -152,10 +161,9 @@ class QLAPI {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${this.ql_token}`,
             },
-            data: JSON.stringify({ "name": "JD_COOKIE", "value": cookie, "id": id }),
+            data: JSON.stringify(body),
         };
-
-        const { data: updateRes } = await axios(options);
+        const { data: updateRes } = await axios.request(options);
         return updateRes.code === 200;
     }
 
@@ -172,14 +180,14 @@ class QLAPI {
 
     async getEnvs() {
         const options = {
-            url: `${this.ql_host}/open/envs?t=${Date.now()}&searchValue=JD_COOKIE`,
+            url: `${this.ql_host}/open/envs?searchValue=JD_COOKIE`,
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${this.ql_token}`,
             },
         };
 
-        const { data: envRes } = await axios(options);
+        const { data: envRes } = await axios.request(options);
         return envRes.code === 200 ? envRes.data : [];
     }
 }
