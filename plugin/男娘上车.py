@@ -12,7 +12,7 @@
 未测试，看接口写的
 奥特曼插件，首先填好插件配置
 bug肯定有，看着改
-
+指令：男娘涩涩
 不是完整插件，没有定时更新ck，只是测试账号密码正常获取ck，提交青龙，同时保存到奥特曼
 '''
 import time
@@ -235,7 +235,7 @@ class QL:
         self.sender = sender
         self.ck = ck
         ql_data = middleware.bucketGet("JDConfig","ql_data")
-        if ql_data == "":
+        if ql_data != "":
             self.qlhost = ql_data.split("#")[0]
             self.qlid = ql_data.split("#")[1]
             self.qlsecret = ql_data.split("#")[2]
@@ -267,12 +267,15 @@ class QL:
         if code == 200:
             data = r.json()['data']
             for i in data:
-                remarks = i.get('remarks')
-                if remarks is None:
-                    remarks = []
-                if i['name'] == self.qlblm and self.pin in remarks or self.pin in i['value']:
+                if i['name'] == self.qlblm and i["remarks"] != None and self.pin in i.get("remarks", ""):
                     self.envs_id = i['id']
                     self.status = i['status']
+
+                    return True
+                elif i['name'] == self.qlblm and self.ck in i['value'] and i.get("remarks", None) is None:
+                    self.envs_id = i['id']
+                    self.status = i['status']
+                    self.update_env()
                     return True
                 else:
                     continue
