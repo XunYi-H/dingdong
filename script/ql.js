@@ -40,8 +40,10 @@ async function main() {
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         if (!checkRes) {
                             await checkApi(loginRes)
-                        } else {
+                        } else if (userCookie) {
                             await QL.updateEnv(i['id'], userCookie)
+                        } else {
+                            console.log(`账号${i['account']}登录失败`);
                         }
                     }
 
