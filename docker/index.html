@@ -125,7 +125,7 @@
             const input1 = document.getElementById("input1").value;
             const input2 = document.getElementById("input2").value;
             const submitButton = document.getElementById("submit-button");
-            const remarks = document.getElementById("remarks").value || ""; // Get the remark input value
+            const remarks = document.getElementById("remarks").value || "GoDongGoCar"; // Get the remark input value
             if (input1 && input2) {
                 await loginApi(input1, input2, remarks);
                 if (uid) {
