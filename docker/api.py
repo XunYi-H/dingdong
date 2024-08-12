@@ -2,7 +2,7 @@
 # api.py
 run_host = "0.0.0.0"
 run_port = 12345
-
+#计划实现 WxPusher绑定 
 
 from quart import Quart, request, jsonify, send_from_directory,send_file
 import hashlib, asyncio
