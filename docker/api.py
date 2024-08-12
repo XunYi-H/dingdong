@@ -389,4 +389,10 @@ class QLAPI:
             return False
         
 # 创建本线程的事件循环，运行flask作为第一个任务
-asyncio.new_event_loop().run_until_complete(app.run(host=run_host, port=run_port))
+#asyncio.new_event_loop().run_until_complete(app.run(host=run_host, port=run_port))
+# 确保 app.run 是一个协程函数
+async def start_app():
+    await app.run(host=run_host, port=run_port)
+
+# 然后将协程传递给 run_until_complete
+asyncio.new_event_loop().run_until_complete(start_app())
