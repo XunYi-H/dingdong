@@ -29,6 +29,9 @@ docker run -dit \
   -p 12345:12345 \
 registry.cn-hangzhou.aliyuncs.com/smallfawn/ddd
 ```
+```
+获取账密 备注 ptpin信息 /get?k=密钥
+```
 第一个12345是外部接口
 ## `/login` 接口
 
