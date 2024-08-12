@@ -16,7 +16,8 @@ mkdir godonggocar
     "notice": "test",
     "ql_host": "http://127.0.0.1:5700",
     "ql_app_id": "xxxxx",
-    "ql_app_secret": "xxxxx"
+    "ql_app_secret": "xxxxx",
+    "ql_isNewVersion":true
 }
 ```
 ```shell
