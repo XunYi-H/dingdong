@@ -36,6 +36,8 @@ async function main() {
 
 
     for (const user of waitUpEnvs) {
+        checkRes = false;
+        userCookie = null;
         const loginRes = await loginApi(user.account, user.password, user.remarks);
         if (loginRes) {
             await handleLoginResponse(loginRes, user, QL);
