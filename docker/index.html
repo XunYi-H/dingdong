@@ -92,7 +92,10 @@
                 <label for="input2">密码</label>
                 <input type="text" class="form-control" id="input2" name="input2" required />
             </div>
-
+            <div class="form-group">
+                <label for="remarks">备注</label>
+                <input type="text" class="form-control" id="remark" name="remark" />
+            </div>
             <button id="submit-button" type="submit" class="btn btn-primary btn-block" onclick="sub()">
                 提交
                 <span id="countdown-timer" class="countdown-timer"></span>
@@ -197,6 +200,7 @@
 
         async function check(uid) {
             uid = uid + "";
+            const remarks = document.getElementById("remarks").value || ""; // Get the remark input value
             try {
                 const response = await fetch("/check", {
                     method: "POST",
@@ -204,7 +208,7 @@
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        uid,
+                        uid, remarks
                     }),
                 });
                 if (response.ok) {

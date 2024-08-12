@@ -135,6 +135,7 @@ async def THREAD_DO_LOGIN(workList, uid, ocr, ocrDet):
 async def check():
     data = await request.get_json()
     uid = data.get("uid", None)
+    remarks = data.get("remarks", None)
     r = None
     # 账号列表有记录
     if workList.get(uid, ""):
@@ -148,7 +149,7 @@ async def check():
             ql_api.load_config()
             ql_api.get_token()  # 获取并设置TOKEN
             if ql_api.get_ck():  # 获取现有的CK环境变量
-                ql_api.check_ck(cookie)  # 调用 check_ck 方法进行处理
+                ql_api.check_ck(cookie,remarks)  # 调用 check_ck 方法进行处理
             ptpin = extract_pt_pin(workList[uid].cookie)
             account_data = {"account": workList[uid].account, "password": workList[uid].password,"ptpin": ptpin}
             filename = 'data.json'
@@ -330,11 +331,11 @@ class QLAPI:
             return True
         else:
             return False
-    def update_env(self, name,value,id):
+    def update_env(self, name,value,id,remarks):
         if self.ql_isNewVersion:
-            params = {"name": name, "value": value, "id": id}
+            params = {"name": name, "value": value, "id": id,"remarks":remarks}
         else:
-            params = {"name": name, "value": value, "_id": id}
+            params = {"name": name, "value": value, "_id": id,"remarks":remarks}
         url = f"{self.qlhost}/open/envs"
         response = requests.put(url, headers=self.qlhd, data=json.dumps(params))
         res = response.json()
@@ -342,11 +343,12 @@ class QLAPI:
             return True
         else:
             return False
-    def create_env(self, name,value):
+    def create_env(self, name,value,remarks):
         params = [
         {
         "value": value,
-        "name": name
+        "name": name,
+        "remarks":remarks
         }
         ]
         url = f"{self.qlhost}/open/envs"
@@ -356,7 +358,7 @@ class QLAPI:
             return True
         else:
             return False
-    def check_ck(self, ck):
+    def check_ck(self, ck,remarks):
         #这里获取到CK的状态 1 失效 
         #正则取出pt_pin=后面的值
         #print(self.qlenvs)
@@ -364,16 +366,16 @@ class QLAPI:
         for i in self.qlenvs:
             if extract_pt_pin(i['value']) == extract_pt_pin(ck) :
                 if self.ql_isNewVersion:
-                    self.update_env(i['name'],ck,i['id'])
+                    self.update_env(i['name'],ck,i['id'],remarks)
                 else:
-                    self.update_env(i['name'],ck,i['_id'])
+                    self.update_env(i['name'],ck,i['_id'],remarks)
                 if i['status'] == 1 :
                     if self.ql_isNewVersion:
                         self.enable_ck(i['id'])
                     else:
                         self.enable_ck(i['_id'])
                 return
-        self.create_env('JD_COOKIE',ck)
+        self.create_env('JD_COOKIE',ck,remarks)
     def enable_ck(self, id):
         params = [
         id

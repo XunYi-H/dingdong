@@ -15,7 +15,7 @@ async function main() {
     if (token) {
         await QL.checkCookie()
         if (failEnvs.length > 0) {
-            const users = await axios.get(`${GoDongGoCarHost}/get`);
+            const users = await axios.get(`${GoDongGoCarHost}/get?k=${key}`);
             for (let i of failEnvs) {
 
                 let ap = users.find(
