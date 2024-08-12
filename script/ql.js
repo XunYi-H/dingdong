@@ -1,11 +1,11 @@
 const axios = require('axios');
 
-const ql_host = "http://192.168.50.250:8888";
-const GoDongGoCarHost = "http://192.168.50.250:5000";
-const ql_app_id = "WXfUoEY6-aD5";
-const ql_app_secret = "3cW7-TRqLL-g_nUtvgCOC7d5";
+const ql_host = "http://127.0.0.1:5700";
+const GoDongGoCarHost = "http://127.0.0.1:12345";
+const ql_app_id = "aaaaa";
+const ql_app_secret = "bbbbb";
 const ql_isNewVersion = true; // 是否为青龙新版本（>= 2.11）
-const key = 'f327047d64044913a93a5324cee9cab1'; //密钥
+const key = 'ababab'; //密钥
 
 let checkRes = false;
 let userCookie = null;
