@@ -17,9 +17,11 @@ mkdir godonggocar
     "ql_host": "http://127.0.0.1:5700",
     "ql_app_id": "xxxxx",
     "ql_app_secret": "xxxxx",
-    "ql_isNewVersion":true
+    "ql_isNewVersion":true,
+    "key": "xxxxx"
 }
 ql_isNewVersion 如果大于等于2.11 则默认true 小于则false
+key 指的是获取 账号密码的密钥 建议最少16位
 ```
 ```shell
 docker run -dit \

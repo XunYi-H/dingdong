@@ -248,9 +248,22 @@ def save_to_file(filename, data):
 # 新增的 GET 路由
 @app.route("/get", methods=["GET"])
 async def get_data():
-    filename = 'data.json'
-    data = load_from_file(filename)
-    return jsonify(data)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+        # 组合脚本目录与文件名形成相对路径
+    file_path = os.path.join(script_dir, 'config.json')
+    
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            config =  json.load(f)
+            param_k = request.args.get('k')
+            #接受GET传参k
+            if param_k == config["key"]:
+                filename = 'data.json'
+                data = load_from_file(filename)
+                return jsonify(data)
+            else:
+                return jsonify([])
+    
 """
 @app.route("/delck", methods=["POST"])
 def delck():

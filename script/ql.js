@@ -8,6 +8,7 @@ let ql_app_screct = "bbbbb"
 let ql_isNewVersion = true //是否为青龙新版本（ >=2.11 ）
 let failEnvs = []
 let waitUpEnvs = [] //匹配成功待更新
+let key ='AAAAA'
 async function main() {
     let QL = new QLAPI()
     let token = await QL.getToken()
