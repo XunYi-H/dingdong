@@ -5,7 +5,7 @@
 # [platform: qq,wx,tg,tb]
 # [rule: ^男娘(.*)$]
 # [param: {"required":true,"key":"JDConfig.ql_data","bool":false,"placeholder":"青龙配置","name":"青龙配置","desc":"青龙地址#client_id#client_secret,例如：https://1.1.1:5700#123#456"}]
-# [param: {"required":true,"key":"JDConfig.host","bool":false,"placeholder":"","name":"滑块接口","desc":"滑块接口ip:端口"}]
+# [param: {"required":true,"key":"JDConfig.host","bool":false,"placeholder":"","name":"项目接口","desc":"项目接口ip:端口"}]
 
 
 '''
