@@ -131,7 +131,6 @@ async def THREAD_DO_LOGIN(workList, uid, ocr, ocrDet):
     """
 
 
-
 # 检查后端进度记录
 @app.route("/check", methods=["POST"])
 async def check():
