@@ -13,8 +13,7 @@ import os
 import requests
 import re
 import time
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
+
 
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
 ocrDet = ddddocr.DdddOcr(show_ad=False, beta=True, det=True)
@@ -451,12 +450,6 @@ class QLAPI:
             return False
 
 
-@sched.scheduled_job(trigger=CronTrigger.from_crontab("*/1 * * * *"))
-def cronJob():
-    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())))
-
-
-sched.start()
 # 创建本线程的事件循环，运行flask作为第一个任务
 # asyncio.new_event_loop().run_until_complete(app.run(host=run_host, port=run_port))
 # 确保 app.run 是一个协程函数
