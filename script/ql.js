@@ -89,6 +89,8 @@ async function checkApi(uid) {
             break;
         case 'SMS':
             console.log('SMS required');
+            console.log(`该账户需要网页登录一次 因为这个时候发出去验证码了`);
+            
             break;
         case 'pending':
             checkRes = false;
