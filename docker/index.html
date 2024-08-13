@@ -19,8 +19,7 @@
             margin-top: 2rem;
         }
 
-        .form-container,
-        .status-box {
+        .box {
             width: 90%;
             max-width: 400px;
             padding: 20px;
@@ -29,12 +28,12 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .form-group label {
-            font-size: 0.9rem;
-        }
-
         h1 {
             font-size: 1.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
         }
 
         #submit-button {
@@ -42,22 +41,12 @@
             margin-top: 15px;
         }
 
-        dialog {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 400px;
-            margin: auto;
-        }
-
         .countdown-timer {
             margin-left: 10px;
             font-weight: bold;
         }
 
-        #uid-display,
-        #status-display {
+        .text-sm {
             font-size: 0.8rem;
             word-break: break-word;
         }
@@ -78,206 +67,175 @@
     <div class="container">
         <h1 id="name"></h1>
 
-        <div class="form-container">
+        <div class="box">
             <div class="form-group">
                 <label for="input1">账号</label>
-                <input type="text" class="form-control" id="input1" name="input1" required />
+                <input type="text" class="form-control" id="input1" required />
             </div>
 
             <div class="form-group">
                 <label for="input2">密码</label>
-                <input type="password" class="form-control" id="input2" name="input2" required />
+                <input type="password" class="form-control" id="input2" required />
             </div>
 
             <div class="form-group">
                 <label for="remarks">备注</label>
-                <input type="text" class="form-control" id="remarks" name="remarks" />
+                <input type="text" class="form-control" id="remarks" />
             </div>
 
-            <button id="submit-button" type="button" class="btn btn-primary btn-block" onclick="submitForm()">
+            <button id="submit-button" type="button" class="btn btn-primary btn-block">
                 提交 <span id="countdown-timer" class="countdown-timer"></span>
             </button>
 
-            <div id="uid-display" class="mt-3"></div>
-            <div id="status-display" class="mt-3"></div>
+            <div id="uid-display" class="mt-3 text-sm"></div>
+            <div id="status-display" class="mt-3 text-sm"></div>
         </div>
     </div>
 
-    <dialog id="sms-dialog">
-        <div class="dialog-content">
-            <h5>本次登录需要验证码，请输入短信验证码</h5>
-            <input type="text" id="sms-code" class="form-control mb-3" placeholder="验证码" required />
-            <button class="btn btn-primary" onclick="submitSmsCode()">提交验证码</button>
-            <button class="btn btn-secondary" onclick="closeDialog()">取消</button>
-        </div>
+    <dialog id="sms-dialog" class="box">
+        <h5>本次登录需要验证码，请输入短信验证码</h5>
+        <input type="text" id="sms-code" class="form-control mb-3" placeholder="验证码" required />
+        <button class="btn btn-primary" id="sms-submit">提交验证码</button>
+        <button class="btn btn-secondary" id="sms-cancel">取消</button>
     </dialog>
 
-    <div id="status-box" class="status-box mt-3"></div>
+    <div id="status-box" class="box mt-3"></div>
 
     <script>
-        let uid = "";
-        let countdownInterval = null;
+        const appState = {
+            uid: "",
+            countdownInterval: null
+        };
 
-        function resetState() {
-            uid = "";
-            clearInterval(countdownInterval);
-            document.getElementById("input1").value = "";
-            document.getElementById("input2").value = "";
-            document.getElementById("remarks").value = "";
-            document.getElementById("uid-display").textContent = "";
-            document.getElementById("status-display").textContent = "";
-            document.getElementById("countdown-timer").textContent = "";
+        const $ = (selector) => document.querySelector(selector);
+        const setTextContent = (selector, text) => $(selector).textContent = text;
+
+        function resetForm() {
+            appState.uid = "";
+            clearInterval(appState.countdownInterval);
+            $$(".form-control").forEach(input => input.value = "");
+            setTextContent("#uid-display", "");
+            setTextContent("#status-display", "");
+            setTextContent("#countdown-timer", "");
             enableSubmitButton();
         }
 
         async function submitForm() {
-            const input1 = document.getElementById("input1").value.trim();
-            const input2 = document.getElementById("input2").value.trim();
-            const remarks = document.getElementById("remarks").value || "GoDongGoCar";
+            const id = $("#input1").value.trim();
+            const pw = $("#input2").value.trim();
+            const remarks = $("#remarks").value || "GoDongGoCar";
 
-            if (!input1 || !input2) {
+            if (!id || !pw) {
                 alert("请输入账号和密码");
                 return;
             }
 
-            await loginApi(input1, input2, remarks);
-
-            if (uid) {
+            const loginResult = await apiRequest("/login", { id, pw, remarks });
+            if (loginResult?.status === "pass") {
+                appState.uid = loginResult.uid;
+                setTextContent("#uid-display", loginResult.msg);
+                alert("提交成功");
                 startCountdown(60);
                 disableSubmitButton();
-
-                for (let i = 0; i < 30; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    const checkStatus = await checkLoginStatus(uid);
-                    if (checkStatus) break;
-                }
-                resetState();
+                await monitorLoginStatus();
+                resetForm();
             }
         }
 
         function startCountdown(seconds) {
-            const countdownTimer = document.getElementById("countdown-timer");
-            countdownTimer.textContent = `(${seconds}s)`;
-            countdownInterval = setInterval(() => {
+            setTextContent("#countdown-timer", `(${seconds}s)`);
+            appState.countdownInterval = setInterval(() => {
                 seconds--;
-                countdownTimer.textContent = `(${seconds}s)`;
+                setTextContent("#countdown-timer", `(${seconds}s)`);
                 if (seconds <= 0) {
-                    clearInterval(countdownInterval);
+                    clearInterval(appState.countdownInterval);
                     enableSubmitButton();
                 }
             }, 1000);
         }
 
-        async function loginApi(id, pw, remarks) {
-            try {
-                const response = await fetch("/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id, pw, remarks }),
-                });
-                const result = await response.json();
-                if (response.ok && result.status === "pass") {
-                    uid = result.uid;
-                    document.getElementById("uid-display").textContent = result.msg;
-                    alert("提交成功");
-                } else {
-                    alert(result.message || "登录失败");
-                }
-            } catch (error) {
-                console.error("Error:", error);
-                alert("网络错误，请稍后再试");
+        async function monitorLoginStatus() {
+            for (let i = 0; i < 30; i++) {
+                await delay(2000);
+                const result = await checkLoginStatus();
+                if (result) break;
             }
         }
 
-        async function checkLoginStatus(uid) {
-            try {
-                const response = await fetch("/check", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ uid }),
-                });
-                const result = await response.json();
-                document.getElementById("uid-display").textContent = result.msg;
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-                switch (result.status) {
-                    case "pass":
-                        alert("登录成功");
-                        return true;
-                    case "error":
-                        alert("登录失败: " + result.msg);
-                        return true;
-                    case "wrongSMS":
-                        alert("验证码错误");
-                        return true;
-                    case "SMS":
-                        openDialog();
-                        return true;
-                }
-            } catch (error) {
-                console.error("Error:", error);
+        async function checkLoginStatus() {
+            const result = await apiRequest("/check", { uid: appState.uid });
+            if (!result) return false;
+
+            setTextContent("#uid-display", result.msg);
+
+            if (result.status === "SMS") {
+                openDialog();
+            } else if (["pass", "error", "wrongSMS"].includes(result.status)) {
+                alert(result.status === "pass" ? "登录成功" : `登录失败: ${result.msg}`);
+                return true;
             }
             return false;
         }
 
         async function submitSmsCode() {
-            const code = document.getElementById("sms-code").value.trim();
+            const code = $("#sms-code").value.trim();
             if (!code) {
                 alert("请输入验证码");
                 return;
             }
-            await smsApi(uid, code);
-            closeDialog();
-        }
 
-        async function smsApi(uid, code) {
-            try {
-                const response = await fetch("/sms", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ uid, code }),
-                });
-                const result = await response.json();
-                document.getElementById("uid-display").textContent = result.msg;
-                if (result.status === "pass") {
-                    alert("提交验证码成功");
-                } else {
-                    alert(result.msg || "验证码错误");
-                }
-            } catch (error) {
-                console.error("Error:", error);
-                alert("网络错误，请稍后再试");
-            }
+            const result = await apiRequest("/sms", { uid: appState.uid, code });
+            closeDialog();
+            alert(result?.status === "pass" ? "提交验证码成功" : "验证码错误");
         }
 
         function openDialog() {
-            document.getElementById("sms-dialog").showModal();
+            $("#sms-dialog").showModal();
         }
 
         function closeDialog() {
-            document.getElementById("sms-dialog").close();
+            $("#sms-dialog").close();
         }
 
         function enableSubmitButton() {
-            document.getElementById("submit-button").disabled = false;
+            $("#submit-button").disabled = false;
         }
 
         function disableSubmitButton() {
-            document.getElementById("submit-button").disabled = true;
+            $("#submit-button").disabled = true;
         }
 
         async function checkStatus() {
+            const result = await apiRequest("/status");
+            if (result) {
+                setTextContent("#status-box", result.msg);
+                setTextContent("#name", result.data.name);
+            } else {
+                setTextContent("#status-box", "Error fetching status.");
+            }
+        }
+
+        async function apiRequest(url, data = {}) {
             try {
-                const response = await fetch("/status");
-                const result = await response.json();
-                document.getElementById("status-box").textContent = result.msg;
-                document.getElementById("name").textContent = result.data.name;
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+                return await response.json();
             } catch (error) {
-                document.getElementById("status-box").textContent = "Error fetching status.";
-                console.error("Error:", error);
+                console.error("API Error:", error);
+                alert("网络错误，请稍后再试");
+                return null;
             }
         }
 
         document.addEventListener("DOMContentLoaded", checkStatus);
+        $("#submit-button").addEventListener("click", submitForm);
+        $("#sms-submit").addEventListener("click", submitSmsCode);
+        $("#sms-cancel").addEventListener("click", closeDialog);
     </script>
 </body>
 
