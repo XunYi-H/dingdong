@@ -3,17 +3,20 @@
 # [author: 大帅逼]
 # [class: 工具类]
 # [platform: qq,wx,tg,tb]
-# [rule: ^男娘(.*)$]
-# [param: {"required":true,"key":"JDConfig.ql_data","bool":false,"placeholder":"青龙配置","name":"青龙配置","desc":"青龙地址#client_id#client_secret,例如：https://1.1.1:5700#123#456"}]
-# [param: {"required":true,"key":"JDConfig.host","bool":false,"placeholder":"","name":"项目接口","desc":"项目接口ip:端口"}]
+# [rule: ^狗东(.*)$]
+
+# [param: {"required":true,"key":"JDConfig.host","bool":false,"placeholder":"","name":"项目接口","desc":"http://项目接口ip:端口"}]
 
 
 '''
-未测试，看接口写的
+已经测试无验证码的状态，没有用本项目登陆过的用户可以测试一下有短信的状态
 奥特曼插件，首先填好插件配置
-bug肯定有，看着改
-指令：男娘涩涩
+
+指令：狗东登陆
 不是完整插件，没有定时更新ck，只是测试账号密码正常获取ck，提交青龙，同时保存到奥特曼
+
+V:1.1
+去掉内置青龙（cookie会提交到你项目配置里的青龙）
 '''
 import time
 import middleware,requests,re
@@ -86,7 +89,8 @@ class JD:
                 self.sender.reply(f"{phone[:3]}***{phone[7:]}正在登录中...")
                 uid = loginData["uid"]
                 # check,获取cookie
-                for t in range(20):
+                for t in range(30):
+                    time.sleep(1)
                     checkData = self.check(uid)
                     if checkData:
                         if checkData["status"] == "pass":
@@ -94,8 +98,8 @@ class JD:
                             cookie = checkData["cookie"]
                             self.sender.reply(f"获取cookie成功：{cookie}")
                             # 调用青龙
-                            qlData = QL(cookie, user, sender).put_ql()
-                            self.sender.reply(qlData)
+                            # qlData = QL(cookie, user, sender).put_ql()
+                            # self.sender.reply(qlData)
 
                             # 存储账号密码到奥特曼桶
                             tong = middleware.bucketGet(self.tongname, self.user)
@@ -133,7 +137,7 @@ class JD:
                                 if smsData:
                                     if smsData["status"] == "pass":
                                         # 成功
-                                        for i in range(20):
+                                        for i in range(30):
                                             checkData = self.check(uid)
                                             if checkData:
                                                 if checkData["status"] == "pass":
@@ -141,8 +145,8 @@ class JD:
                                                     cookie = checkData["cookie"]
                                                     self.sender.reply(f"获取cookie成功：{cookie}")
                                                     # 调用青龙
-                                                    qlData = QL(cookie, user, sender).put_ql()
-                                                    self.sender.reply(qlData)
+                                                    # qlData = QL(cookie, user, sender).put_ql()
+                                                    # self.sender.reply(qlData)
                                                     # 存储账号密码到奥特曼桶
                                                     tong = middleware.bucketGet(self.tongname, self.user)
                                                     if tong == "":
@@ -172,7 +176,7 @@ class JD:
                                                     self.sender.reply(f"重新登录吧：{checkData}")
                                                     return
                                             elif checkData["status"] == "pending":
-                                                time.sleep(1)
+                                                time.sleep(3)
                                                 continue
                                             else:
                                                 self.sender.reply(f"{checkData['msg']}")
@@ -190,7 +194,7 @@ class JD:
                                     self.sender.reply("服务错误")
                                     return
                         elif checkData["status"] == "pending":
-                            time.sleep(1)
+                            time.sleep(3)
                             continue
                         else:
                             self.sender.reply(f"{checkData['msg']}")
@@ -210,7 +214,9 @@ class JD:
 
 
     def login(self,phone,pd):
-        res = requests.post(f"{self.host}/login",json={"id":phone,"password":pd})
+
+
+        res = requests.post(f"{self.host}/login",json={"id":phone,"pw":pd,"remarks":phone})
         if res.status_code == 200:
             return res.json()
         else:
@@ -229,144 +235,144 @@ class JD:
         else:
             return False
 # 青龙函数例子
-class QL:
-    def __init__(self,ck, user, sender):
-        self.user = user
-        self.sender = sender
-        self.ck = ck
-        ql_data = middleware.bucketGet("JDConfig","ql_data")
-        if ql_data != "":
-            self.qlhost = ql_data.split("#")[0]
-            self.qlid = ql_data.split("#")[1]
-            self.qlsecret = ql_data.split("#")[2]
-        else:
-            self.qlhost = ""
-            self.qlid = ""
-            self.qlsecret = ""
-        self.qltoken = None
-        self.qlhd = None
-        self.pin = re.search(r'pt_pin=([^;]+)',ck).group(1)
-        self.qlblm = "JD_COOKIE"
-    def ql_login(self):
-        url = f"{self.qlhost}/open/auth/token?client_id={self.qlid}&client_secret={self.qlsecret}"
-        res = requests.get(url).json()
-        if res["code"] == 200:
-            self.qltoken = res['data']['token']
-            self.qlhd = {
-                "Authorization": f"Bearer {self.qltoken}",
-                "accept": "application/json",
-                "Content-Type": "application/json",
-            }
-            return True
-        else:
-            return False
-    def get_env(self):
-        url = f'{self.qlhost}/open/envs'
-        r = requests.get(url, headers=self.qlhd)
-        code = r.json()['code']
-        if code == 200:
-            data = r.json()['data']
-            for i in data:
-                if i['name'] == self.qlblm and i["remarks"] != None and self.pin in i.get("remarks", ""):
-                    self.envs_id = i['id']
-                    self.status = i['status']
-
-                    return True
-                elif i['name'] == self.qlblm and self.ck in i['value'] and i.get("remarks", None) is None:
-                    self.envs_id = i['id']
-                    self.status = i['status']
-                    self.update_env()
-                    return True
-                else:
-                    continue
-            return False
-        else:
-            return False
-    def update_env(self):
-        url = f'{self.qlhost}/open/envs'
-        data = {
-            "value": f"{self.ck}",
-            "name": f'{self.qlblm}',
-            "remarks": f"{self.pin}",
-            'id': self.envs_id
-        }
-        r = requests.put(url, headers=self.qlhd, json=data)
-        code = r.json()['code']
-        if code == 200:
-            return True
-        else:
-            return False
-    def set_env(self):
-        url = f'{self.qlhost}/open/envs'
-        data = [
-            {
-                "value": f"{self.ck}",
-                "name": f'{self.qlblm}',
-                "remarks": f"{self.pin}"
-            }
-        ]
-        r = requests.post(url, headers=self.qlhd, json=data)
-        code = r.json()['code']
-        if code == 200:
-            return True
-        else:
-            return False
-    def qy_env(self):
-        """启用/禁用环境变量"""
-        try:
-            url = f"{self.qlhost}/open/envs/enable"
-            res = requests.put(url, headers=self.qlhd, json=[self.envs_id]).status_code
-            if res == 200:
-                return True
-            else:
-                return False
-
-        except requests.exceptions.RequestException as e:
-            return False
-
-    def jyEnv(self):
-        url = f"{self.qlhost}/open/envs/disable"
-        res = requests.put(url, headers=self.qlhd, json=[self.envs_id]).status_code
-        if res == 200:
-            return True
-        else:
-            return False
-    def put_ql(self):
-        from datetime import datetime
-        if self.qlhost == "":
-            return "没有配置青龙桶数据"
-        if self.ql_login():
-            if self.get_env():
-                if self.update_env():
-                    if self.status == 1:
-                        self.qy_env()
-                        qd = self.sender.getImtype().upper()  # 获取渠道
-                        # 保存渠道
-                        middleware.bucketSet(f"pin{qd}", self.pin, self.user)
-                        # notify，保存通知
-                        value = {"ID": self.pin, "Pet": False, "Fruit": False, "DreamFactory": False, "Note": "",
-                                 "PtKey": re.search(r"pt_key=([^;]+)", self.ck).group(1), "AssetCron": "",
-                                 "PushPlus": "",
-                                 "LoginedAt": datetime.now(), "ClientID": self.qlid}
-                        middleware.bucketSet(f"jdNotify", self.pin, f"{value}")
-                    return "更新ck成功"
-                else:
-                    return "更新ck出现错误"
-            else:
-                if self.set_env():
-                    qd = self.sender.getImtype().upper()  # 获取渠道
-                    # 保存渠道
-                    middleware.bucketSet(f"pin{qd}", self.pin, self.user)
-                    # notify，保存通知
-                    value = {"ID": self.pin, "Pet": False, "Fruit": False, "DreamFactory": False, "Note": "",
-                             "PtKey": re.search(r"pt_key=([^;]+)", self.ck).group(1), "AssetCron": "", "PushPlus": "",
-                             "LoginedAt": datetime.now(), "ClientID": self.qlid}
-                    middleware.bucketSet(f"jdNotify", self.pin, f"{value}")
-                    return "提交ck成功"
-                else:
-                    return "提交ck出现错误"
-        else:
-            return "青龙连接失败"
+# class QL:
+#     def __init__(self,ck, user, sender):
+#         self.user = user
+#         self.sender = sender
+#         self.ck = ck
+#         ql_data = middleware.bucketGet("JDConfig","ql_data")
+#         if ql_data != "":
+#             self.qlhost = ql_data.split("#")[0]
+#             self.qlid = ql_data.split("#")[1]
+#             self.qlsecret = ql_data.split("#")[2]
+#         else:
+#             self.qlhost = ""
+#             self.qlid = ""
+#             self.qlsecret = ""
+#         self.qltoken = None
+#         self.qlhd = None
+#         self.pin = re.search(r'pt_pin=([^;]+)',ck).group(1)
+#         self.qlblm = "JD_COOKIE"
+#     def ql_login(self):
+#         url = f"{self.qlhost}/open/auth/token?client_id={self.qlid}&client_secret={self.qlsecret}"
+#         res = requests.get(url).json()
+#         if res["code"] == 200:
+#             self.qltoken = res['data']['token']
+#             self.qlhd = {
+#                 "Authorization": f"Bearer {self.qltoken}",
+#                 "accept": "application/json",
+#                 "Content-Type": "application/json",
+#             }
+#             return True
+#         else:
+#             return False
+#     def get_env(self):
+#         url = f'{self.qlhost}/open/envs'
+#         r = requests.get(url, headers=self.qlhd)
+#         code = r.json()['code']
+#         if code == 200:
+#             data = r.json()['data']
+#             for i in data:
+#                 if i['name'] == self.qlblm and i["remarks"] != None and self.pin in i.get("remarks", ""):
+#                     self.envs_id = i['id']
+#                     self.status = i['status']
+# 
+#                     return True
+#                 elif i['name'] == self.qlblm and self.ck in i['value'] and i.get("remarks", None) is None:
+#                     self.envs_id = i['id']
+#                     self.status = i['status']
+#                     self.update_env()
+#                     return True
+#                 else:
+#                     continue
+#             return False
+#         else:
+#             return False
+#     def update_env(self):
+#         url = f'{self.qlhost}/open/envs'
+#         data = {
+#             "value": f"{self.ck}",
+#             "name": f'{self.qlblm}',
+#             "remarks": f"{self.pin}",
+#             'id': self.envs_id
+#         }
+#         r = requests.put(url, headers=self.qlhd, json=data)
+#         code = r.json()['code']
+#         if code == 200:
+#             return True
+#         else:
+#             return False
+#     def set_env(self):
+#         url = f'{self.qlhost}/open/envs'
+#         data = [
+#             {
+#                 "value": f"{self.ck}",
+#                 "name": f'{self.qlblm}',
+#                 "remarks": f"{self.pin}"
+#             }
+#         ]
+#         r = requests.post(url, headers=self.qlhd, json=data)
+#         code = r.json()['code']
+#         if code == 200:
+#             return True
+#         else:
+#             return False
+#     def qy_env(self):
+#         """启用/禁用环境变量"""
+#         try:
+#             url = f"{self.qlhost}/open/envs/enable"
+#             res = requests.put(url, headers=self.qlhd, json=[self.envs_id]).status_code
+#             if res == 200:
+#                 return True
+#             else:
+#                 return False
+# 
+#         except requests.exceptions.RequestException as e:
+#             return False
+# 
+#     def jyEnv(self):
+#         url = f"{self.qlhost}/open/envs/disable"
+#         res = requests.put(url, headers=self.qlhd, json=[self.envs_id]).status_code
+#         if res == 200:
+#             return True
+#         else:
+#             return False
+#     def put_ql(self):
+#         from datetime import datetime
+#         if self.qlhost == "":
+#             return "没有配置青龙桶数据"
+#         if self.ql_login():
+#             if self.get_env():
+#                 if self.update_env():
+#                     if self.status == 1:
+#                         self.qy_env()
+#                         qd = self.sender.getImtype().upper()  # 获取渠道
+#                         # 保存渠道
+#                         middleware.bucketSet(f"pin{qd}", self.pin, self.user)
+#                         # notify，保存通知
+#                         value = {"ID": self.pin, "Pet": False, "Fruit": False, "DreamFactory": False, "Note": "",
+#                                  "PtKey": re.search(r"pt_key=([^;]+)", self.ck).group(1), "AssetCron": "",
+#                                  "PushPlus": "",
+#                                  "LoginedAt": datetime.now(), "ClientID": self.qlid}
+#                         middleware.bucketSet(f"jdNotify", self.pin, f"{value}")
+#                     return "更新ck成功"
+#                 else:
+#                     return "更新ck出现错误"
+#             else:
+#                 if self.set_env():
+#                     qd = self.sender.getImtype().upper()  # 获取渠道
+#                     # 保存渠道
+#                     middleware.bucketSet(f"pin{qd}", self.pin, self.user)
+#                     # notify，保存通知
+#                     value = {"ID": self.pin, "Pet": False, "Fruit": False, "DreamFactory": False, "Note": "",
+#                              "PtKey": re.search(r"pt_key=([^;]+)", self.ck).group(1), "AssetCron": "", "PushPlus": "",
+#                              "LoginedAt": datetime.now(), "ClientID": self.qlid}
+#                     middleware.bucketSet(f"jdNotify", self.pin, f"{value}")
+#                     return "提交ck成功"
+#                 else:
+#                     return "提交ck出现错误"
+#         else:
+#             return "青龙连接失败"
 
 
 
@@ -380,5 +386,5 @@ if __name__ == "__main__":
     user = sender.getUserID()
     JD = JD(user, sender)
     message = sender.getMessage()
-    if "男娘涩涩" == message:
+    if "狗东登陆" == message:
         JD.get_ck()
