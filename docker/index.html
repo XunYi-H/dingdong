@@ -130,6 +130,7 @@
         };
 
         const $ = (selector) => document.querySelector(selector);
+
         const setTextContent = (selector, text) => $(selector).textContent = text;
 
         function resetForm() {
@@ -233,12 +234,31 @@
         }
 
         async function checkStatus() {
-            const result = await apiRequest("/status");
+            const result = await apiGet("/status");
             if (result) {
                 setTextContent("#status-box", result.msg);
                 setTextContent("#name", result.data.name);
+                if (result?.status === "pass") {
+                    $("#status-box").style.color = "green";
+                } else {
+                    $("#status-box").style.color = "red";
+                }
             } else {
                 setTextContent("#status-box", "Error fetching status.");
+            }
+        }
+
+        async function apiGet(url) {
+            try {
+                const response = await fetch(url, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+                return await response.json();
+            } catch (error) {
+                console.error("API Error:", error);
+                alert("网络错误，请稍后再试");
+                return null;
             }
         }
 
