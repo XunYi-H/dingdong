@@ -109,6 +109,8 @@
 
             <div id="uid-display" class="mt-3 text-sm"></div>
             <div id="status-display" class="mt-3 text-sm"></div>
+            <div id="status-check-info" class="mt-3 text-sm"></div>
+
         </div>
     </div>
 
@@ -175,7 +177,9 @@
         }
 
         async function monitorLoginStatus() {
+            const statusCheckInfo = $("#status-check-info");
             for (let i = 0; i < 30; i++) {
+                statusCheckInfo.textContent = `正在进行第${i}次检查状态`;
                 await delay(2000);
                 const result = await checkLoginStatus();
                 if (result) break;
@@ -185,6 +189,7 @@
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
         async function checkLoginStatus() {
+
             const result = await apiRequest("/check", { uid: appState.uid });
             if (!result) return false;
 
