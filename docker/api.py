@@ -171,9 +171,9 @@ async def check():
             existing_data = load_from_file(filename)
             # Only save the data if it does not already exist
             if not any(
-                item["account"] == account_data["account"]
-                and item["password"] == account_data["password"]
-                for item in existing_data
+                    item["account"] == account_data["account"]
+                    and item["password"] == account_data["password"]
+                    for item in existing_data
             ):
                 existing_data.append(account_data)
                 save_to_file(filename, existing_data)
@@ -294,13 +294,18 @@ async def get_data():
 @app.route("/status", methods=["GET"])
 async def checkql():
     ql_api = QLAPI()
-    ql_api.load_config()
-    ql_api.get_token()
-    if ql_api.qltoken is None:
-        r = mr("wrongQL", msg="青龙检测失败, 请检查config.json",data={"name": ql_api.name,"notice":ql_api.notice})
-    else:
-        r = mr("pass", msg="青龙检测成功",data={"name": ql_api.name,"notice":ql_api.notice})
-    return r
+    try:
+        ql_api.load_config()
+        ql_api.get_token()
+        if ql_api.qltoken is None:
+            r = mr("wrongQL", msg="青龙检测失败, 请检查config.json",
+                   data={"name": ql_api.name, "notice": ql_api.notice})
+        else:
+            r = mr("pass", msg="青龙检测成功", data={"name": ql_api.name, "notice": ql_api.notice})
+        return r
+    except:
+        r = mr("wrongQL", msg="青龙检测失败, 请检查config.json", data={"name": ql_api.name, "notice": ql_api.notice})
+        return r
 
 
 """
