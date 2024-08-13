@@ -396,5 +396,9 @@ async def start_app():
 
 # 然后将协程传递给 run_until_complete
 loop = asyncio.get_event_loop()
-loop.run_until_complete(start_app())
+if loop.is_running():
+        # If a loop is already running, use it to run the app
+    asyncio.ensure_future(start_app())
+else:
+    loop.run_until_complete(start_app())
 #asyncio.new_event_loop().run_until_complete(start_app())
