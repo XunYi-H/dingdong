@@ -81,7 +81,13 @@ def mr(status, **kwargs):
 @app.route("/", methods=["GET"])
 async def index():
     # 请求外部验证接口
-    return await send_file("index.html")
+    
+    response = await send_file("index.html")
+
+    # 添加缓存控制的头部信息
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
 
     """
     response = requests.get('https://888.88:9/vilate')
