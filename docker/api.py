@@ -285,7 +285,7 @@ async def get_data():
                 return jsonify([])
 
 
-@app.route("/checkql", methods=["GET"])
+@app.route("/status", methods=["GET"])
 async def checkql():
     ql_api = QLAPI()
     ql_api.load_config()
