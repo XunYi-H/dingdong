@@ -395,4 +395,6 @@ async def start_app():
     await app.run(host=run_host, port=run_port)
 
 # 然后将协程传递给 run_until_complete
-asyncio.new_event_loop().run_until_complete(start_app())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(start_app())
+#asyncio.new_event_loop().run_until_complete(start_app())
