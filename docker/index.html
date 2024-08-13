@@ -272,8 +272,6 @@
                     if (result.status === "pass") {
                         isLoginFlag = true;
                         alert("登录成功");
-                        enableSubmitButton();
-                        clearCountdown();
                         resetState()
                         return; // 退出函数
                     }
@@ -286,19 +284,14 @@
                         }
                         isLoginFlag = true;
                         alert("登录失败" + result.msg);
-                        enableSubmitButton();
-                        clearCountdown();
                         resetState()
                         return
                     }
                     if (result.status === "wrongSMS") {
                         isLoginFlag = true;
-                        enableSubmitButton();
-                        clearCountdown();
                         alert("验证码错误");
                         resetState()
                         return
-
                     }
                     if (result.status === "SMS") {
                         isSmsFlag = true;
