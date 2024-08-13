@@ -46,6 +46,26 @@
             font-weight: bold;
         }
 
+        #status-box {
+            width: 100%;
+            /* Ensure the status box takes the full width available */
+            max-width: 400px;
+            /* Optional: limit the maximum width */
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            /* Center content horizontally */
+            align-items: center;
+            /* Center content vertically */
+            text-align: center;
+            /* Center-align the text inside the box */
+            margin: 0 auto;
+            /* Center the box itself within its container */
+        }
+
         .text-sm {
             font-size: 0.8rem;
             word-break: break-word;
@@ -227,7 +247,7 @@
                 return await response.json();
             } catch (error) {
                 console.error("API Error:", error);
-                alert("网络错误，请稍后再试");
+                //alert("网络错误，请稍后再试");
                 return null;
             }
         }
