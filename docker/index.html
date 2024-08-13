@@ -232,10 +232,10 @@
                     }
                     if (result.status === "error") {
                         if (result.msg.indexOf("未找到") > -1) {
-                            isLoginFlag = true;
                             //提示重新登录
                             alert("请重新登录");
                         }
+                        isLoginFlag = true;
                         alert("登录失败" + result.msg);
                     }
                     if (result.status === "wrongSMS") {
