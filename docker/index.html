@@ -130,8 +130,8 @@
         };
 
         const $ = (selector) => document.querySelector(selector);
-
         const setTextContent = (selector, text) => $(selector).textContent = text;
+        const $$ = (selector) => document.querySelectorAll(selector);
 
         function resetForm() {
             appState.uid = "";
@@ -234,45 +234,31 @@
         }
 
         async function checkStatus() {
-            const result = await apiGet("/status");
+            const result = await apiRequest("/status");
             if (result) {
                 setTextContent("#status-box", result.msg);
                 setTextContent("#name", result.data.name);
-                if (result?.status === "pass") {
-                    $("#status-box").style.color = "green";
-                } else {
-                    $("#status-box").style.color = "red";
-                }
             } else {
                 setTextContent("#status-box", "Error fetching status.");
             }
         }
 
-        async function apiGet(url) {
+        async function apiRequest(url, data = null) {
             try {
-                const response = await fetch(url, {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" },
-                });
+                const options = {
+                    method: data ? "POST" : "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                };
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                const response = await fetch(url, options);
                 return await response.json();
             } catch (error) {
                 console.error("API Error:", error);
-                alert("网络错误，请稍后再试");
-                return null;
-            }
-        }
-
-        async function apiRequest(url, data = {}) {
-            try {
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data),
-                });
-                return await response.json();
-            } catch (error) {
-                console.error("API Error:", error);
-                //alert("网络错误，请稍后再试");
+                // alert("网络错误，请稍后再试");
                 return null;
             }
         }
