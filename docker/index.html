@@ -226,24 +226,34 @@
                         isLoginFlag = true;
                         alert("登录成功");
                         enableSubmitButton();
-                        clearCountdown()
+                        clearCountdown();
+                        return; // 退出函数
                     }
                     if (result.status === "pending") {
                     }
                     if (result.status === "error") {
                         if (result.msg.indexOf("未找到") > -1) {
                             //提示重新登录
-                            alert("请重新登录");
+
                         }
                         isLoginFlag = true;
                         alert("登录失败" + result.msg);
+                        enableSubmitButton();
+                        clearCountdown();
+                        return
                     }
                     if (result.status === "wrongSMS") {
+                        isLoginFlag = true;
+                        enableSubmitButton();
+                        clearCountdown();
                         alert("验证码错误");
+                        return
+
                     }
                     if (result.status === "SMS") {
                         isSmsFlag = true;
                         openDialog();
+                        return
                     }
                 } else {
                     console.error("Error:", response);
@@ -260,10 +270,10 @@
                     await smsApi(uid, code);
                     isSmsFlag = false; // 验证码验证完成后设置为false
                     for (let i = 0; i < waitTime; i++) {
-                        //减少请求频率
                         await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
                         if (!isSmsFlag) {
                             await check(uid);
+                            break; // 退出循环
                         }
                     }
                     closeDialog();
@@ -272,6 +282,7 @@
                 }
             }
         }
+
 
         async function smsApi(uid, code) {
             uid = uid + "";
