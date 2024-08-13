@@ -150,8 +150,6 @@
     <script>
         function resetState() {
             uid = "";
-            isLoginFlag = false;
-            isSmsFlag = false;
             clearCountdown();
             enableSubmitButton();
             document.getElementById("input1").value = "";
@@ -167,6 +165,8 @@
         let isLoginFlag = false; // 新增标志位
         let isSmsFlag = false;
         async function sub() {
+            isLoginFlag = false;
+            isSmsFlag = false;
             const input1 = document.getElementById("input1").value;
             const input2 = document.getElementById("input2").value;
             const submitButton = document.getElementById("submit-button");
