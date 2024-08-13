@@ -254,6 +254,7 @@
                 if (data) {
                     options.body = JSON.stringify(data);
                 }
+
                 const response = await fetch(url, options);
                 return await response.json();
             } catch (error) {
