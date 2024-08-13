@@ -46,8 +46,23 @@
             font-weight: bold;
         }
 
+        #uid-display,
+        #status-check-info {
+            text-align: center;
+            /* Center the text horizontally */
+            width: 100%;
+            /* Ensure it takes up the full width */
+            display: flex;
+            /* Use flexbox for centering */
+            justify-content: center;
+            /* Center horizontally */
+            align-items: center;
+            /* Center vertically */
+        }
+
         #status-box {
             width: 100%;
+            color: red;
             /* Ensure the status box takes the full width available */
             max-width: 400px;
             /* Optional: limit the maximum width */
@@ -108,7 +123,6 @@
             </button>
 
             <div id="uid-display" class="mt-3 text-sm"></div>
-            <div id="status-display" class="mt-3 text-sm"></div>
             <div id="status-check-info" class="mt-3 text-sm"></div>
 
         </div>
@@ -128,17 +142,16 @@
             uid: "",
             countdownInterval: null
         };
-
         const $ = (selector) => document.querySelector(selector);
         const setTextContent = (selector, text) => $(selector).textContent = text;
         const $$ = (selector) => document.querySelectorAll(selector);
+        const statusCheckInfo = $("#status-check-info");
 
         function resetForm() {
             appState.uid = "";
             clearInterval(appState.countdownInterval);
             $$(".form-control").forEach(input => input.value = "");
             setTextContent("#uid-display", "");
-            setTextContent("#status-display", "");
             setTextContent("#countdown-timer", "");
             enableSubmitButton();
         }
@@ -178,9 +191,8 @@
         }
 
         async function monitorLoginStatus() {
-            const statusCheckInfo = $("#status-check-info");
             for (let i = 0; i < 30; i++) {
-                statusCheckInfo.textContent = `正在进行第${i}次检查状态`;
+                statusCheckInfo.textContent = `正在进行第${i + 1}次检查状态`;
                 await delay(2000);
                 const result = await checkLoginStatus();
                 if (result) break;
@@ -200,6 +212,7 @@
                 openDialog();
             } else if (["pass", "error", "wrongSMS"].includes(result.status)) {
                 alert(result.status === "pass" ? "登录成功" : `登录失败: ${result.msg}`);
+                statusCheckInfo.textContent = "";
                 return true;
             }
             return false;
