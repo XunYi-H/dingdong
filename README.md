@@ -31,10 +31,18 @@ ql_isNewVersion 如果大于等于2.11 则默认true 小于则false
 key 指的是获取 账号密码的密钥 建议最少16位
 ```
 ```shell
+ARM架构
 docker run -dit \
   -v $PWD/godonggocar/config.json:/app/config.json \
   -p 12345:12345 \
-registry.cn-hangzhou.aliyuncs.com/smallfawn/ddd
+registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_arm64_ddd
+```
+```shell
+AMD架构
+docker run -dit \
+  -v $PWD/godonggocar/config.json:/app/config.json \
+  -p 12345:12345 \
+registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_amd64_ddd
 ```
 ```
 获取账密 备注 ptpin信息 /get?k=密钥
