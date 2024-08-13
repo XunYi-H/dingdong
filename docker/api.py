@@ -13,9 +13,13 @@ import os
 import requests
 import re
 import time
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
 ocrDet = ddddocr.DdddOcr(show_ad=False, beta=True, det=True)
+
+sched = BackgroundScheduler()
 
 
 class account:
@@ -81,13 +85,13 @@ def mr(status, **kwargs):
 @app.route("/", methods=["GET"])
 async def index():
     # 请求外部验证接口
-    
+
     response = await send_file("index.html")
 
     # 添加缓存控制的头部信息
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     return response
     """
     response = requests.get('https://888.88:9/vilate')
@@ -171,9 +175,9 @@ async def check():
             existing_data = load_from_file(filename)
             # Only save the data if it does not already exist
             if not any(
-                    item["account"] == account_data["account"]
-                    and item["password"] == account_data["password"]
-                    for item in existing_data
+                item["account"] == account_data["account"]
+                and item["password"] == account_data["password"]
+                for item in existing_data
             ):
                 existing_data.append(account_data)
                 save_to_file(filename, existing_data)
@@ -298,13 +302,24 @@ async def checkql():
         ql_api.load_config()
         ql_api.get_token()
         if ql_api.qltoken is None:
-            r = mr("wrongQL", msg="青龙检测失败, 请检查config.json",
-                   data={"name": ql_api.name, "notice": ql_api.notice})
+            r = mr(
+                "wrongQL",
+                msg="青龙检测失败, 请检查config.json",
+                data={"name": ql_api.name, "notice": ql_api.notice},
+            )
         else:
-            r = mr("pass", msg="青龙检测成功", data={"name": ql_api.name, "notice": ql_api.notice})
+            r = mr(
+                "pass",
+                msg="青龙检测成功",
+                data={"name": ql_api.name, "notice": ql_api.notice},
+            )
         return r
     except:
-        r = mr("wrongQL", msg="青龙检测失败, 请检查config.json", data={"name": ql_api.name, "notice": ql_api.notice})
+        r = mr(
+            "wrongQL",
+            msg="青龙检测失败, 请检查config.json",
+            data={"name": ql_api.name, "notice": ql_api.notice},
+        )
         return r
 
 
@@ -340,8 +355,8 @@ class QLAPI:
         self.qlid = None
         self.qlsecret = None
         self.qlenvs = []
-        self.name = 'GoDongGoCar'
-        self.notice = '欢迎光临'
+        self.name = "GoDongGoCar"
+        self.notice = "欢迎光临"
 
     def load_config(self):
         # print(os.getcwd())
@@ -436,6 +451,12 @@ class QLAPI:
             return False
 
 
+@sched.scheduled_job(trigger=CronTrigger.from_crontab("*/1 * * * *"))
+def cronJob():
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())))
+
+
+sched.start()
 # 创建本线程的事件循环，运行flask作为第一个任务
 # asyncio.new_event_loop().run_until_complete(app.run(host=run_host, port=run_port))
 # 确保 app.run 是一个协程函数
