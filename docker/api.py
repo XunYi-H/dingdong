@@ -18,7 +18,6 @@ import time
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
 ocrDet = ddddocr.DdddOcr(show_ad=False, beta=True, det=True)
 
-sched = BackgroundScheduler()
 
 
 class account:
