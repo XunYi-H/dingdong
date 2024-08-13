@@ -116,6 +116,17 @@
     </dialog>
 
     <script>
+        function resetState() {
+            uid = "";
+            isLoginFlag = false;
+            isSmsFlag = false;
+            clearCountdown();
+            enableSubmitButton();
+            document.getElementById("input1").value = "";
+            document.getElementById("input2").value = "";
+            document.getElementById("remarks").value = "";
+            document.getElementById("uid-display").textContent = "";
+        }
         console.log(`Author:'smallfawn'`)
         let waitTime = 60;
         let uid = "";
@@ -151,6 +162,7 @@
                         enableSubmitButton();  // 允许再次提交
                     }
                 }
+                resetState()
             } else {
                 alert("请输入账号和密码");
             }
@@ -227,6 +239,7 @@
                         alert("登录成功");
                         enableSubmitButton();
                         clearCountdown();
+                        resetState()
                         return; // 退出函数
                     }
                     if (result.status === "pending") {
@@ -240,6 +253,7 @@
                         alert("登录失败" + result.msg);
                         enableSubmitButton();
                         clearCountdown();
+                        resetState()
                         return
                     }
                     if (result.status === "wrongSMS") {
@@ -247,6 +261,7 @@
                         enableSubmitButton();
                         clearCountdown();
                         alert("验证码错误");
+                        resetState()
                         return
 
                     }
