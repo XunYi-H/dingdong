@@ -291,9 +291,9 @@ async def checkql():
     ql_api.load_config()
     ql_api.get_token()
     if ql_api.qltoken is None:
-        r = mr("wrongQL", msg="青龙检测失败, 请检查config.json")
+        r = mr("wrongQL", msg="青龙检测失败, 请检查config.json",data={"name": ql_api.name,"notice":ql_api.notice})
     else:
-        r = mr("pass", msg="青龙检测成功")
+        r = mr("pass", msg="青龙检测成功",data={"name": ql_api.name,"notice":ql_api.notice})
     return r
 
 
@@ -329,6 +329,8 @@ class QLAPI:
         self.qlid = None
         self.qlsecret = None
         self.qlenvs = []
+        self.name = 'GoDongGoCar'
+        self.notice = '欢迎光临'
 
     def load_config(self):
         # print(os.getcwd())
@@ -343,6 +345,8 @@ class QLAPI:
         self.qlid = config["ql_app_id"]
         self.qlsecret = config["ql_app_secret"]
         self.ql_isNewVersion = config["ql_isNewVersion"]
+        self.name = config["name"]
+        self.notice = config["notice"]
 
     def get_token(self):
         # print(self.qlhost)

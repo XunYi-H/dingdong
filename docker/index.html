@@ -110,7 +110,7 @@
 
 <body>
     <div class="container">
-        <h1 class="text-center mt-5 mb-4">狗东GoCar</h1>
+        <h1 class="text-center mt-5 mb-4" id='name'></h1>
 
         <div class="form-container">
             <div class="form-group">
@@ -342,6 +342,7 @@
                 if (response.ok) {
                     const result = await response.json();
                     document.getElementById("status-box").textContent = result.msg;
+                    document.getElementById("name").textContent = result.data.name;
                 } else {
                     document.getElementById("status-box").textContent = "Error fetching status.";
                 }
