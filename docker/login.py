@@ -48,7 +48,7 @@ supported_colors = {
 async def deleteSession(workList, uid):
     s = workList.get(uid, "")
     if s:
-        await asyncio.sleep(15)
+        await asyncio.sleep(30)
         del workList[uid]
 
 async def loginPhone(chromium_path, workList, uid, headless):

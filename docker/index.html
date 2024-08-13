@@ -218,6 +218,7 @@
                 openDialog();
             } else if (["pass", "error", "wrongSMS"].includes(result.status)) {
                 alert(result.status === "pass" ? "登录成功" : `登录失败: ${result.msg}`);
+                resetForm()
                 statusCheckInfo.textContent = "";
                 return true;
             }
