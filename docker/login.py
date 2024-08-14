@@ -48,7 +48,7 @@ supported_colors = {
 async def deleteSession(workList, uid):
     s = workList.get(uid, "")
     if s:
-        await asyncio.sleep(30)
+        await asyncio.sleep(60)
         del workList[uid]
 
 async def loginPhone(chromium_path, workList, uid, headless):
@@ -131,7 +131,7 @@ async def loginPhone(chromium_path, workList, uid, headless):
         try:
             now_time = datetime.datetime.now()
             print("循环检测中...")
-            if (now_time - start_time).total_seconds() > 70:
+            if (now_time - start_time).total_seconds() > 120:
                 print("进入超时分支")
                 workList[uid].status = "error"
                 workList[uid].msg = "登录超时"
@@ -302,7 +302,7 @@ async def loginPassword(chromium_path, workList, uid, headless):
         try:
             now_time = datetime.datetime.now()
             print("循环检测中...")
-            if (now_time - start_time).total_seconds() > 70:
+            if (now_time - start_time).total_seconds() > 90:
                 print("进入超时分支")
                 workList[uid].status = "error"
                 workList[uid].msg = "登录超时"
