@@ -341,8 +341,28 @@ def extract_pt_pin(cookie_string):
         return match.group(1)
     else:
         return ""
+def createQrCode(params):
+    url = "https://wxpusher.zjiecode.com/api/fun/create/qrcode"
+    payload = {
+    "appToken": "XXX",
+    "extra": params,
+    "validTime": 300
+    }
+    headers = {
+    "Accept": "*/*",
+    "Accept-Encoding": "gzip, deflate, br",
+    "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+    "Connection": "keep-alive",
+    "Content-Type": "application/json"
+    }
 
-
+    response = requests.request("POST", url, json=payload, headers=headers)
+    return response.json()
+#这里主要是实现了 如果用户扫码成功 wxpusher就会调用这个方法  具体传参看https://wxpusher.zjiecode.com/docs/#/?id=subscribe-callback
+#然后我们根据传参接收参数 保存至json
+app.route("/wxpushercallback", methods=["GET"])
+def wxpushercallback():
+    return "ok"
 class QLAPI:
     def __init__(self):
         self.config_file = "config.json"
@@ -355,6 +375,8 @@ class QLAPI:
         self.qlenvs = []
         self.name = "GoDongGoCar"
         self.notice = "欢迎光临"
+        self.wxpusherAppToken = None
+        self.wxpusherAdminUid = None
 
     def load_config(self):
         # print(os.getcwd())
@@ -371,6 +393,8 @@ class QLAPI:
         self.ql_isNewVersion = config["ql_isNewVersion"]
         self.name = config["name"]
         self.notice = config["notice"]
+        self.wxpusherAppToken = config["wxpusherAppToken"]
+        self.wxpusherAdminUid = config["wxpusherAdminUid"]
 
     def get_token(self):
         # print(self.qlhost)

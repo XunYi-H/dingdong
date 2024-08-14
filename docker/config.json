@@ -5,5 +5,7 @@
     "ql_app_id": "xxxxx",
     "ql_app_secret": "xxxxx",
     "ql_isNewVersion":true,
-    "key": "xxxxx"
+    "key": "xxxxx",
+    "wxpusherAppToken":"",
+    "wxpusherAdminUid":""
 }
