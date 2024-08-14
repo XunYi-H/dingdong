@@ -10,32 +10,30 @@ mkdir godonggocar
 在godonggocar目录下创建config.json文件
 写入
 {
-    "name": "test",
-    "notice": "test",
-    "ql_host": "http://127.0.0.1:5700",
-    "ql_app_id": "xxxxx",
-    "ql_app_secret": "xxxxx",
-    "ql_isNewVersion":true,
-    "key": "xxxxx",
-    "wxpusherAppToken":"AT_XXXXX",
-    "wxpusherAdminUid":"SSS",
-    "isWxPusher":true
+"name": "test",
+"notice": "test",
+"ql_host": "http://127.0.0.1:5700",
+"ql_app_id": "xxxxx",
+"ql_app_secret": "xxxxx",
+"ql_isNewVersion":true,
+"key": "xxxxx",
+"wxpusherAppToken":"AT_XXXXX",
+"wxpusherAdminUid":"SSS",
+"isWxPusher":true
 }
-如果不知道就别写了 把isWxPusher改为false 
-isWxPusher 推送开关 如果false 则不会展示二维码 
+创建data.json文件 里面填写[]
+isWxPusher 推送开关 如果false 则不会展示二维码
 wxpusherAdminUid WXPUSHER管理员UID
 wxpusherAppToken WXPUSHER应用ID
-------------
 ql_isNewVersion 如果大于等于2.11 则默认true 小于则false
 key 指的是获取 账号密码的密钥 建议最少16位 为了保护你的账号密码信息 请务必自定义密钥且8-16位字母加数字组合
 不支持标点符号等
-wxpusher 应用回调接口写 http://127.0.0.1:12345/wxpushercallback
-127.0.0.1:12345是你的GODONGGOCAR地址 注意是https还是http  =必须为外网地址=
 ```
 ```shell
 ARM架构
 docker run -dit \
   -v $PWD/godonggocar/config.json:/app/config.json \
+  -v $PWD/godonggocar/data.json:/app/data.json \
   -p 12345:12345 \
 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_arm64_ddd
 ```
@@ -43,6 +41,7 @@ registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_arm64_ddd
 AMD架构
 docker run -dit \
   -v $PWD/godonggocar/config.json:/app/config.json \
+  -v $PWD/godonggocar/data.json:/app/data.json \
   -p 12345:12345 \
 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_amd64_ddd
 ```
