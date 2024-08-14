@@ -13,6 +13,7 @@ import os
 import requests
 import re
 import time
+import urllib.parse
 
 
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
@@ -180,6 +181,9 @@ async def check():
             ):
                 existing_data.append(account_data)
                 save_to_file(filename, existing_data)
+                if(ql_api.isWxPusher):
+                    loginNotify(ql_api.wxpusherAppToken,ql_api.wxpusherAdminUid,"账号"+ptpin + "登录成功")
+
         elif status == "pending":
             r = mr(status, msg="正在处理中，请等待")
         elif status == "error":
@@ -213,8 +217,12 @@ async def sms():
     except Exception as e:
         r = mr("error", msg=str(e))
         return r
-
-
+#登录通知
+def loginNotify(token,uid,content):
+    encoded_content = urllib.parse.quote(content)
+    url = "https://wxpusher.zjiecode.com/api/send/message/?appToken="+token+"&content="+encoded_content+"&uid="+uid+"&url=http%3a%2f%2fbaidu.com"
+    response = requests.get(url)
+    return ""
 def loginPublic(data):
     try:
         u = account(data)
