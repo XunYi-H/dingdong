@@ -257,7 +257,7 @@
             alert(result?.status === "pass" ? "提交验证码成功" : "验证码错误");
 
             if (result?.status === "pass") {
-                alert("提交验证码成功");
+                //alert("提交验证码成功");
                 appState.pauseMonitoring = false; // 重置标志以继续循环
                 await monitorLoginStatus(); // 恢复监控
             } else {
