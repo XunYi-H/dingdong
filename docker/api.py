@@ -13,6 +13,7 @@ import os
 import requests
 import re
 import time
+import urllib.parse
 
 
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
@@ -168,6 +169,7 @@ async def check():
                 "password": workList[uid].password,
                 "ptpin": ptpin,
                 "remarks": workList[uid].remarks,
+                "wxpusherUid":""
             }
             filename = "data.json"
             existing_data = load_from_file(filename)
@@ -179,6 +181,9 @@ async def check():
             ):
                 existing_data.append(account_data)
                 save_to_file(filename, existing_data)
+                if(ql_api.isWxPusher):
+                    loginNotify(ql_api.wxpusherAppToken,ql_api.wxpusherAdminUid,"账号" + ptpin + "登录成功")
+
         elif status == "pending":
             r = mr(status, msg="正在处理中，请等待")
         elif status == "error":
@@ -212,8 +217,12 @@ async def sms():
     except Exception as e:
         r = mr("error", msg=str(e))
         return r
-
-
+#登录通知
+def loginNotify(token,uid,content):
+    encoded_content = urllib.parse.quote(content)
+    url = "https://wxpusher.zjiecode.com/api/send/message/?appToken="+token+"&content="+encoded_content+"&uid="+uid+"&url=http%3a%2f%2fbaidu.com"
+    response = requests.get(url)
+    return ""
 def loginPublic(data):
     try:
         u = account(data)
@@ -302,21 +311,21 @@ async def checkql():
         if ql_api.qltoken is None:
             r = mr(
                 "wrongQL",
-                msg="青龙检测失败, 请检查config.json",
-                data={"name": ql_api.name, "notice": ql_api.notice},
+                msg="存储容器检测失败, 请检查参数是否正确",
+                data={"name": ql_api.name, "notice": ql_api.notice,"isPush":ql_api.isWxPusher},
             )
         else:
             r = mr(
                 "pass",
-                msg="青龙检测成功",
-                data={"name": ql_api.name, "notice": ql_api.notice},
+                msg="存储容器检测成功",
+                data={"name": ql_api.name, "notice": ql_api.notice,"isPush":ql_api.isWxPusher},
             )
         return r
     except:
         r = mr(
-            "wrongQL",
-            msg="青龙检测失败, 请检查config.json",
-            data={"name": ql_api.name, "notice": ql_api.notice},
+            "wrongFile",
+            msg="存储容器检测失败, 请检查config.json",
+            data={},
         )
         return r
 
@@ -341,6 +350,68 @@ def extract_pt_pin(cookie_string):
         return match.group(1)
     else:
         return ""
+@app.route("/qrcode", methods=["POST"])
+async def createQrCode():
+    data = await request.get_json()  # Retrieve JSON data from the POST request
+    ptpin = data.get('params', '')
+    result = createQrCodeApi(ptpin)
+    if not result:
+        return mr("error",msg='error',data='')
+    return mr("pass",msg='ok', data=result)
+
+def createQrCodeApi(params):
+    ql_api = QLAPI()
+    ql_api.load_config()
+    url = "https://wxpusher.zjiecode.com/api/fun/create/qrcode"
+    payload = {
+        "appToken": ql_api.wxpusherAppToken,
+        "extra": params,
+        "validTime": 300
+    }
+    headers = {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        result = response.json()
+        
+        if result.get("code") == 1000:
+            return result.get("data", {}).get("url")
+        else:
+            print(f"API Error: {result.get('msg', 'Unknown error')}")
+            return False
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        return False
+
+#这里主要是实现了 如果用户扫码成功 wxpusher就会调用这个方法  具体传参看https://wxpusher.zjiecode.com/docs/#/?id=subscribe-callback
+#然后我们根据传参接收参数 保存至json
+@app.route("/wxpushercallback", methods=["POST"])
+async def wxpushercallback():
+    params = await request.get_json()
+    uid = params.get('data', {}).get('uid', '')
+    extra = params.get('data', {}).get('extra', '')
+    #这里保存到JSON文件
+    #找到DATA.JSON文件 DATA.JSON是一个数组
+    #找到和extra等于ptpin的一项
+    print("接收WXPUSHER CALLBACK UID"+uid)
+    print("接收WXPUSHER CALLBACK EXTRA" + extra)
+    data = load_from_file("data.json")
+
+    # Find the item where extra equals ptpin
+    for item in data:
+        #print(item["ptpin"])
+        #print(extra)
+        if item["ptpin"] == extra:
+            item["wxpusherUid"] = uid
+            save_to_file("data.json", data)
+            return mr("pass", msg='ok', data=item)
+
+    return mr("error", msg='Item not found', data='')
 
 
 class QLAPI:
@@ -355,6 +426,9 @@ class QLAPI:
         self.qlenvs = []
         self.name = "GoDongGoCar"
         self.notice = "欢迎光临"
+        self.wxpusherAppToken = None
+        self.wxpusherAdminUid = None
+        self.isWxPusher = False
 
     def load_config(self):
         # print(os.getcwd())
@@ -371,6 +445,9 @@ class QLAPI:
         self.ql_isNewVersion = config["ql_isNewVersion"]
         self.name = config["name"]
         self.notice = config["notice"]
+        self.wxpusherAppToken = config["wxpusherAppToken"]
+        self.wxpusherAdminUid = config["wxpusherAdminUid"]
+        self.isWxPusher = config["isWxPusher"]
 
     def get_token(self):
         # print(self.qlhost)
@@ -452,7 +529,7 @@ class QLAPI:
 # 创建本线程的事件循环，运行flask作为第一个任务
 # asyncio.new_event_loop().run_until_complete(app.run(host=run_host, port=run_port))
 # 确保 app.run 是一个协程函数
-"""
+""".
 async def start_app():
     await app.run(host=run_host, port=run_port)
 
