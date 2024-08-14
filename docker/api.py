@@ -353,6 +353,7 @@ async def createQrCode():
 
 def createQrCodeApi(params):
     ql_api = QLAPI()
+    ql_api.load_config()
     url = "https://wxpusher.zjiecode.com/api/fun/create/qrcode"
     payload = {
         "appToken": ql_api.wxpusherAppToken,
