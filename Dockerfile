@@ -12,6 +12,7 @@ RUN apk add --no-cache \
     apk del gcc musl-dev && \
     rm -rf /var/cache/apk/*
 
+    
 # 复制必要的文件
 COPY ./docker/ ./
 
