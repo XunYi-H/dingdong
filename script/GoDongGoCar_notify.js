@@ -16,7 +16,7 @@ async function main() {
         CK_WxPusherUidArr = fs.readFileSync('./CK_WxPusherUid.json', 'utf8')
     } catch (e) {
         console.log(`未找到CK_WxPusherUid.json文件`);
-        return 
+        return
     }
     try {
         CK_WxPusherUidArr = JSON.parse(CK_WxPusherUidArr)
@@ -27,7 +27,14 @@ async function main() {
     const { data: users } = await axios.get(`${GoDongGoCarHost}/get?k=${key}`);
     for (const user of users) {
         if (user?.wxpusherUid) {
-            CK_WxPusherUidArr.push({ pt_pin: user.ptpin, Uid: user.wxpusherUid })
+            //如果存在
+            if (CK_WxPusherUidArr.find(item => item.pt_pin == user.ptpin)) {
+
+            } else {
+                CK_WxPusherUidArr.push({ pt_pin: user.ptpin, Uid: user.wxpusherUid })
+
+
+            }
         }
     }
     console.log(CK_WxPusherUidArr)
