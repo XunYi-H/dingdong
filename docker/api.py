@@ -385,8 +385,8 @@ def createQrCodeApi(params):
 @app.route("/wxpushercallback", methods=["POST"])
 async def wxpushercallback():
     params = await request.get_json()
-    uid = params.get("uid", '')
-    extra = params.get("extra", '')
+    uid = params.get('data', {}).get('uid', '')
+    extra = params.get('data', {}).get('extra', '')
     #这里保存到JSON文件
     #找到DATA.JSON文件 DATA.JSON是一个数组
     #找到和extra等于ptpin的一项
