@@ -353,10 +353,7 @@ async def createQrCode():
 
 def createQrCodeApi(params):
     ql_api = QLAPI()
-    print(ql_api.wxpusherAppToken)
     ql_api.load_config()
-    print(ql_api.wxpusherAppToken)
-
     url = "https://wxpusher.zjiecode.com/api/fun/create/qrcode"
     payload = {
         "appToken": ql_api.wxpusherAppToken,
@@ -393,16 +390,17 @@ async def wxpushercallback():
     #这里保存到JSON文件
     #找到DATA.JSON文件 DATA.JSON是一个数组
     #找到和extra等于ptpin的一项
+    print("接收WXPUSHER CALLBACK UID"+uid)
+    print("接收WXPUSHER CALLBACK EXTRA" + extra)
     data = load_from_file("data.json")
 
     # Find the item where extra equals ptpin
     for item in data:
-        if item.get("ptpin") == extra:
+        print(item["ptpin"])
+        print(extra)
+        if item["ptpin"] == extra:
             item["wxpusherUid"] = uid
-
-            # Save updated data back to the file
             save_to_file("data.json", data)
-            
             return mr("pass", msg='ok', data=item)
 
     return mr("error", msg='Item not found', data='')
