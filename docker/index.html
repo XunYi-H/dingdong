@@ -86,6 +86,10 @@
             word-break: break-word;
         }
 
+        #qr-code {
+            margin-top: 20px;
+        }
+
         @media (max-width: 576px) {
             h1 {
                 font-size: 1.25rem;
@@ -134,7 +138,10 @@
         <button class="btn btn-primary" id="sms-submit">提交验证码</button>
         <button class="btn btn-secondary" id="sms-cancel">取消</button>
     </dialog>
-
+    <dialog id="qr-dialog" class="box">
+        <h5>wxpusher 对接</h5>
+        <img id="qr-code" src="" alt="QR Code" style="display:none; max-width:100%;" />
+    </dialog>
     <div id="status-box" class="box mt-3"></div>
 
     <script>
@@ -296,7 +303,16 @@
                 return null;
             }
         }
-
+        function showQrCode(qrCodeUrl) {
+            const qrCodeImage = $("#qr-code");
+            qrCodeImage.src = qrCodeUrl; 
+            qrCodeImage.style.display = "block";
+        }
+        function wxpusherApi(ptpin){
+            //请求后端生成动态或静态二维码
+            //展示二维码
+            showQrCode('XXX')
+        }
         document.addEventListener("DOMContentLoaded", checkStatus);
         $("#submit-button").addEventListener("click", submitForm);
         $("#sms-submit").addEventListener("click", submitSmsCode);
