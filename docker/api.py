@@ -386,8 +386,8 @@ def createQrCodeApi(params):
 #这里主要是实现了 如果用户扫码成功 wxpusher就会调用这个方法  具体传参看https://wxpusher.zjiecode.com/docs/#/?id=subscribe-callback
 #然后我们根据传参接收参数 保存至json
 @app.route("/wxpushercallback", methods=["POST"])
-def wxpushercallback():
-    params = request.get_json()
+async def wxpushercallback():
+    params = await request.get_json()
     uid = params.get("uid", '')
     extra = params.get("extra", '')
     #这里保存到JSON文件
