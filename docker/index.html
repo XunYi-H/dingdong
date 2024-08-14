@@ -253,7 +253,7 @@
             }
 
             const result = await apiRequest("/sms", { uid: appState.uid, code });
-            closeDialog("#sms-dialog");
+            closeDialog($("#sms-dialog"));
             alert(result?.status === "pass" ? "提交验证码成功" : "验证码错误");
 
             if (result?.status === "pass") {
