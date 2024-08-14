@@ -343,8 +343,8 @@ def extract_pt_pin(cookie_string):
     else:
         return ""
 @app.route("/qrcode", methods=["POST"])
-def createQrCode():
-    data = request.get_json()  # Retrieve JSON data from the POST request
+async def createQrCode():
+    data = await request.get_json()  # Retrieve JSON data from the POST request
     ptpin = data.get('params', '')
     result = createQrCodeApi(ptpin)
     if not result:
