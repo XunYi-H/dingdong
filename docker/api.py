@@ -352,9 +352,10 @@ async def createQrCode():
     return mr("pass",msg='ok', data=result)
 
 def createQrCodeApi(params):
+    ql_api = QLAPI()
     url = "https://wxpusher.zjiecode.com/api/fun/create/qrcode"
     payload = {
-        "appToken": "XXX",
+        "appToken": ql_api.wxpusherAppToken,
         "extra": params,
         "validTime": 300
     }
