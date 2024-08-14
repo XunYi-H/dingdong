@@ -310,7 +310,7 @@ async def checkql():
             r = mr(
                 "pass",
                 msg="存储容器检测成功",
-                data={"name": ql_api.name, "notice": ql_api.notice},
+                data={"name": ql_api.name, "notice": ql_api.notice,"isPush":ql_api.isWxPusher},
             )
         return r
     except:
