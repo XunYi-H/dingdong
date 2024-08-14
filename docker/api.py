@@ -168,6 +168,7 @@ async def check():
                 "password": workList[uid].password,
                 "ptpin": ptpin,
                 "remarks": workList[uid].remarks,
+                "wxpusherUid":""
             }
             filename = "data.json"
             existing_data = load_from_file(filename)
@@ -302,21 +303,21 @@ async def checkql():
         if ql_api.qltoken is None:
             r = mr(
                 "wrongQL",
-                msg="青龙检测失败, 请检查config.json",
-                data={"name": ql_api.name, "notice": ql_api.notice},
+                msg="存储容器检测失败, 请检查参数是否正确",
+                data={"name": ql_api.name, "notice": ql_api.notice,"isPush":ql_api.isWxPusher},
             )
         else:
             r = mr(
                 "pass",
-                msg="青龙检测成功",
+                msg="存储容器检测成功",
                 data={"name": ql_api.name, "notice": ql_api.notice},
             )
         return r
     except:
         r = mr(
-            "wrongQL",
-            msg="青龙检测失败, 请检查config.json",
-            data={"name": ql_api.name, "notice": ql_api.notice},
+            "wrongFile",
+            msg="存储容器检测失败, 请检查config.json",
+            data={},
         )
         return r
 
@@ -341,28 +342,68 @@ def extract_pt_pin(cookie_string):
         return match.group(1)
     else:
         return ""
+@app.route("/qrcode", methods=["POST"])
 def createQrCode(params):
+    params = request.get_json()  # Retrieve JSON data from the POST request
+    ptpin = params.get('params', '')
+    result = createQrCodeApi(ptpin)
+    if not result:
+        return mr("error",msg='error',data='')
+    return mr("pass",msg='ok', data=result)
+
+def createQrCodeApi(params):
     url = "https://wxpusher.zjiecode.com/api/fun/create/qrcode"
     payload = {
-    "appToken": "XXX",
-    "extra": params,
-    "validTime": 300
+        "appToken": "XXX",
+        "extra": params,
+        "validTime": 300
     }
     headers = {
-    "Accept": "*/*",
-    "Accept-Encoding": "gzip, deflate, br",
-    "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
-    "Connection": "keep-alive",
-    "Content-Type": "application/json"
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json"
     }
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        result = response.json()
+        
+        if result.get("code") == 1000:
+            return result.get("data", {}).get("url")
+        else:
+            print(f"API Error: {result.get('msg', 'Unknown error')}")
+            return False
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        return False
 
-    response = requests.request("POST", url, json=payload, headers=headers)
-    return response.json()
 #这里主要是实现了 如果用户扫码成功 wxpusher就会调用这个方法  具体传参看https://wxpusher.zjiecode.com/docs/#/?id=subscribe-callback
 #然后我们根据传参接收参数 保存至json
-app.route("/wxpushercallback", methods=["GET"])
+@app.route("/wxpushercallback", methods=["GET"])
 def wxpushercallback():
-    return "ok"
+    params = request.get_json()
+    uid = params.get("uid", '')
+    extra = params.get("extra", '')
+    #这里保存到JSON文件
+    #找到DATA.JSON文件 DATA.JSON是一个数组
+    [{"account": "1234567890",'password':"","ptpin":"","remarks":"","wxpusherUid":""}]
+    #找到和extra等于ptpin的一项
+    data = load_from_file("data.json")
+
+    # Find the item where extra equals ptpin
+    for item in data:
+        if item.get("ptpin") == extra:
+            item["wxpusherUid"] = uid
+
+            # Save updated data back to the file
+            save_to_file("data.json", data)
+            
+            return mr("pass", msg='ok', data=item)
+
+    return mr("error", msg='Item not found', data='')
+
+
 class QLAPI:
     def __init__(self):
         self.config_file = "config.json"
@@ -395,6 +436,7 @@ class QLAPI:
         self.notice = config["notice"]
         self.wxpusherAppToken = config["wxpusherAppToken"]
         self.wxpusherAdminUid = config["wxpusherAdminUid"]
+        self.isWxPusher = config["isWxPusher"]
 
     def get_token(self):
         # print(self.qlhost)

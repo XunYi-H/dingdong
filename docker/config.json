@@ -7,5 +7,6 @@
     "ql_isNewVersion":true,
     "key": "xxxxx",
     "wxpusherAppToken":"",
-    "wxpusherAdminUid":""
+    "wxpusherAdminUid":"",
+    "isWxPusher":true
 }

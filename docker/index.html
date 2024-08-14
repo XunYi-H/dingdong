@@ -152,6 +152,7 @@
             uid: "",
             countdownInterval: null,
             pauseMonitoring: false, // This flag controls whether the loop is paused
+            isPush: false
         };
         const $ = (selector) => document.querySelector(selector);
         const setTextContent = (selector, text) => $(selector).textContent = text;
@@ -227,6 +228,13 @@
                 appState.pauseMonitoring = true; // Set the flag to pause the loop
                 openDialog();
             } else if (["pass", "error", "wrongSMS"].includes(result.status)) {
+                if (result.status == "pass") {
+                    if (appState.isPush) {
+                        if(getPtPin(result.cookie)){
+                            await wxpusherApi(getPtPin(result.cookie))
+                        }
+                    }
+                }
                 alert(result.status === "pass" ? "登录成功" : `登录失败: ${result.msg}`);
                 resetForm()
                 statusCheckInfo.textContent = "";
@@ -278,6 +286,7 @@
             if (result) {
                 setTextContent("#status-box", result.msg);
                 setTextContent("#name", result.data.name);
+                appState.isPush = result.data.isPush;
             } else {
                 setTextContent("#status-box", "Error fetching status.");
             }
@@ -305,14 +314,24 @@
         }
         function showQrCode(qrCodeUrl) {
             const qrCodeImage = $("#qr-code");
-            qrCodeImage.src = qrCodeUrl; 
+            qrCodeImage.src = qrCodeUrl;
             qrCodeImage.style.display = "block";
         }
-        function wxpusherApi(ptpin){
-            //请求后端生成动态或静态二维码
-            //展示二维码
-            showQrCode('XXX')
+        function wxpusherApi(ptpin) {
+            const result = apiRequest("/qrcode", { params: ptpin }).then(result => {
+                if (result && result.status === "pass") {
+                    showQrCode(result.data);
+                } else {
+                    alert("获取二维码失败");
+                }
+            });
         }
+        function getPtPin(str) {
+            const match = str.match(/pt_pin=([^;]+)/);
+            return match ? match[1] : '';
+        }
+
+
         document.addEventListener("DOMContentLoaded", checkStatus);
         $("#submit-button").addEventListener("click", submitForm);
         $("#sms-submit").addEventListener("click", submitSmsCode);
