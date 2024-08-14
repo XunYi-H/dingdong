@@ -1,8 +1,12 @@
-from quart import Quart, request, jsonify, send_file
-import hashlib, asyncio, json, os, re, urllib.parse
+from quart import Quart, request, jsonify, send_from_directory, send_file
+import hashlib, asyncio
+import login as backend
 import ddddocr
+import json
+import os
 import requests
-
+import re
+import time
 # 初始化 OCR
 def init_ocr():
     return ddddocr.DdddOcr(show_ad=False, beta=True), ddddocr.DdddOcr(show_ad=False, beta=True, det=True)
