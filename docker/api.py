@@ -182,7 +182,7 @@ async def check():
                 existing_data.append(account_data)
                 save_to_file(filename, existing_data)
                 if(ql_api.isWxPusher):
-                    loginNotify(ql_api.wxpusherAppToken,ql_api.wxpusherAdminUid,"账号" + ptpin + "登录成功")
+                    loginNotify(ql_api.wxpusherAppToken,ql_api.wxpusherAdminUid,"账号" + ptpin + "登录成功:"+workList[uid].remarks)
 
         elif status == "pending":
             r = mr(status, msg="正在处理中，请等待")
