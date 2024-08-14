@@ -16,7 +16,6 @@ async function main() {
         CK_WxPusherUidArr = fs.readFileSync('./CK_WxPusherUid.json', 'utf8')
     } catch (e) {
         console.log(`未找到CK_WxPusherUid.json文件`);
-        return
     }
     try {
         CK_WxPusherUidArr = JSON.parse(CK_WxPusherUidArr)
