@@ -30,7 +30,7 @@ ql_isNewVersion 如果大于等于2.11 则默认true 小于则false
 key 指的是获取 账号密码的密钥 建议最少16位 为了保护你的账号密码信息 请务必自定义密钥且8-16位字母加数字组合
 不支持标点符号等
 wxpusher 应用回调接口写 http://127.0.0.1:12345/wxpushercallback
-127.0.0.1:12345是你的GODONGGOCAR地址 注意是https还是http  
+127.0.0.1:12345是你的GODONGGOCAR地址 注意是https还是http  =必须为外网地址=
 ```
 ```shell
 ARM架构
