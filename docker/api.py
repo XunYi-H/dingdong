@@ -428,6 +428,7 @@ class QLAPI:
         self.notice = "欢迎光临"
         self.wxpusherAppToken = None
         self.wxpusherAdminUid = None
+        self.isWxPusher = False
 
     def load_config(self):
         # print(os.getcwd())
