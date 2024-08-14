@@ -396,8 +396,8 @@ async def wxpushercallback():
 
     # Find the item where extra equals ptpin
     for item in data:
-        print(item["ptpin"])
-        print(extra)
+        #print(item["ptpin"])
+        #print(extra)
         if item["ptpin"] == extra:
             item["wxpusherUid"] = uid
             save_to_file("data.json", data)
