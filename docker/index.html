@@ -266,12 +266,16 @@
             }
         }
 
-        function openDialog(ele) {
-            $(ele).showModal();
+        function openDialog(dialog) {
+            if (dialog && dialog.close) {
+                dialog.showModal();
+            }
         }
 
-        function closeDialog(ele) {
-            $(ele).close();
+        function closeDialog(dialog) {
+            if (dialog && dialog.close) {
+                dialog.close();
+            }
         }
 
         function enableSubmitButton() {
@@ -335,11 +339,13 @@
             return match ? match[1] : "";
         }
 
+
+
         document.addEventListener("DOMContentLoaded", checkStatus);
         $("#submit-button").addEventListener("click", submitForm);
         $("#sms-submit").addEventListener("click", submitSmsCode);
-        $("#sms-cancel").addEventListener("click", closeDialog("#sms-dialog"));
-        $("#qr-submit").addEventListener("click", closeDialog("#qr-dialog"));
+        $("#sms-cancel").addEventListener("click", () => closeDialog($("#sms-dialog")));
+        $("#qr-submit").addEventListener("click", () => closeDialog($("#qr-dialog")));
     </script>
 </body>
 
