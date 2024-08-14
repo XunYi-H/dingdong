@@ -3,6 +3,11 @@ const fs = require('fs')
 
 const GoDongGoCarHost = 'https://127.0.0.1:12345'
 const key = 'XXXXX'
+//请使用前拉 调用该库进行通知
+//旧版本青龙
+//ql repo https://github.com/ccwav/QLScript2.git "jd_" "NoUsed" "ql|sendNotify|utils"
+//新版本青龙
+//ql repo https://github.com/ccwav/QLScript2.git "jd_" "NoUsed" "ql|sendNotify|utils|USER_AGENTS|jdCookie|JS_USER_AGENTS"
 
 async function main() {
     //读取CK_WxPusherUid.json
