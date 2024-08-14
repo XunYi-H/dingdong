@@ -226,7 +226,7 @@
 
             if (result.status === "SMS") {
                 appState.pauseMonitoring = true; // Set the flag to pause the loop
-                openDialog("#sms-dialog");
+                openDialog($("#sms-dialog"));
             } else if (["pass", "error", "wrongSMS"].includes(result.status)) {
                 if (result.status == "pass") {
                     if (appState.isPush) {
@@ -262,7 +262,7 @@
                 await monitorLoginStatus(); // 恢复监控
             } else {
                 alert("验证码错误，请重试");
-                openDialog("#sms-dialog"); // 重新打开对话框
+                openDialog($("#sms-dialog")); // 重新打开对话框
             }
         }
 
@@ -318,7 +318,7 @@
             }
         }
         function showQrCode(qrCodeUrl) {
-            openDialog("#qr-dialog");
+            openDialog($("#qr-dialog"));
             const qrCodeImage = $("#qr-code");
             qrCodeImage.src = qrCodeUrl;
             qrCodeImage.style.display = "block";
