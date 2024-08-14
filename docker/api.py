@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 # api.py
-run_host = "0.0.0.0"
-run_port = 12345
-# 计划实现 WxPusher绑定
 
-from quart import Quart, request, jsonify, send_from_directory, send_file
+from quart import Quart, request, jsonify, send_file
 import hashlib, asyncio
 import login as backend
 import ddddocr
@@ -12,267 +9,232 @@ import json
 import os
 import requests
 import re
-import time
 import urllib.parse
 
+run_host = "0.0.0.0"
+run_port = 12345
 
 ocr = ddddocr.DdddOcr(show_ad=False, beta=True)
 ocrDet = ddddocr.DdddOcr(show_ad=False, beta=True, det=True)
 
-
-
-class account:
-    status = ""
-    uid = ""
-    account = ""
-    password = ""
-    isAuto = False
-    type = ""
-    cookie = ""
-    SMS_CODE = ""
-    msg = ""
-
+class Account:
     def __init__(self, data):
         try:
             self.status = "pending"
-            self.account = data.get("id", None)
-            self.type = data.get("type", None)
-            self.remarks = data.get("remarks", None)
-            self.password = data.get("pw", None)
+            self.account = data.get("id")
+            self.type = data.get("type", "password")
+            self.remarks = data.get("remarks")
+            self.password = data.get("pw")
             self.isAuto = data.get("isAuto", False)
+            self.uid = hashlib.sha256((str(self.account) + str(self.password)).encode("utf-8")).hexdigest()
+
             if not self.account:
                 raise ValueError("账号不能为空")
-            if type == "password" and not self.password:
+            if self.type == "password" and not self.password:
                 raise ValueError("密码不能为空")
+        except Exception as e:
+            raise ValueError(f"账号密码错误: {str(e)}")
 
-            c = str(self.account) + str(self.password)
-            self.uid = hashlib.sha256(c.encode("utf-8")).hexdigest()
-        except:
-            raise ValueError("账号密码错误：" + str(data))
-
-
-# 正在处理的账号列表
 workList = {}
-"""
-(global) workList ={
-    uid: {
-        status: pending,
-        account: 138xxxxxxxx, 
-        password: admin123,
-        isAuto: False
-        cookie: ""
-        SMS_CODE: None,
-        msg: "Error Info"
-    },
-    ...
-}
-"""
+
 app = Quart(__name__)
 
-
 def mr(status, **kwargs):
-    r_data = {}
-    r_data["status"] = status
-    for key, value in kwargs.items():
-        r_data[str(key)] = value
-    r_data = jsonify(r_data)
-    r_data.headers["Content-Type"] = "application/json; charset=utf-8"
-    return r_data
+    r_data = {"status": status, **kwargs}
+    response = jsonify(r_data)
+    response.headers["Content-Type"] = "application/json; charset=utf-8"
+    return response
 
-
-# -----router-----
 @app.route("/", methods=["GET"])
 async def index():
-    # 请求外部验证接口
-
     response = await send_file("index.html")
-
-    # 添加缓存控制的头部信息
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
+    response.headers.update({
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    })
     return response
-    """
-    response = requests.get('https://888.88:9/vilate')
 
-    if response.status_code == 200:
-        result = response.json()
-        if result.get('status', False):  # 检查 'status' 键的值
-            return send_file('index.html')
-    
-    return "加载失败", 403
-    """
-
-
-# 传入账号密码，启动登录线程
 @app.route("/login", methods=["POST"])
-async def login():
-    # print("login")
-    data = await request.get_json()
-    if "type" not in data:
-        data["type"] = "password"
-    return loginPublic(data)
-
-
-# 启动登录线程
 @app.route("/loginNew", methods=["POST"])
-async def loginNew():
-    print("loginPassword")
+async def login():
     data = await request.get_json()
     return loginPublic(data)
 
-
-# 调用后端进行登录
-async def THREAD_DO_LOGIN(workList, uid, ocr, ocrDet):
+async def THREAD_DO_LOGIN(uid):
     try:
         await backend.main(workList, uid, ocr, ocrDet)
     except Exception as e:
         print(e)
         workList[uid].msg = str(e)
 
-    """
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    try:
-        loop.run_until_complete(backend.start(workList, uid))
-    except Exception as e:
-        print(e)
-        workList[uid].msg = str(e)
-    """
-
-
-# 检查后端进度记录
 @app.route("/check", methods=["POST"])
 async def check():
     data = await request.get_json()
-    uid = data.get("uid", None)
-    r = None
-    # 账号列表有记录
-    if workList.get(uid, ""):
-        status = workList[uid].status
+    uid = data.get("uid")
+
+    if uid in workList:
+        account = workList[uid]
+        status = account.status
+
         if status == "pass":
-            cookie = workList[uid].cookie
-            r = mr(status, cookie=cookie, msg="成功")
-            # 登录成功后保存账户和密码到文件
-            # 正则取出cookie 里面pt_pin=的值
             ql_api = QLAPI()
             ql_api.load_config()
-            ql_api.get_token()  # 获取并设置TOKEN
-            if ql_api.get_ck():  # 获取现有的CK环境变量
-                ql_api.check_ck(
-                    cookie, workList[uid].remarks
-                )  # 调用 check_ck 方法进行处理
-            ptpin = extract_pt_pin(workList[uid].cookie)
+            ql_api.get_token()
+
+            if ql_api.get_ck():
+                ql_api.check_ck(account.cookie, account.remarks)
+
+            ptpin = extract_pt_pin(account.cookie)
             account_data = {
-                "account": workList[uid].account,
-                "password": workList[uid].password,
+                "account": account.account,
+                "password": account.password,
                 "ptpin": ptpin,
-                "remarks": workList[uid].remarks,
-                "wxpusherUid":""
+                "remarks": account.remarks,
+                "wxpusherUid": ""
             }
-            filename = "data.json"
-            existing_data = load_from_file(filename)
-            # Only save the data if it does not already exist
-            if not any(
-                item["account"] == account_data["account"]
-                and item["password"] == account_data["password"]
-                for item in existing_data
-            ):
-                existing_data.append(account_data)
-                save_to_file(filename, existing_data)
-                if(ql_api.isWxPusher):
-                    loginNotify(ql_api.wxpusherAppToken,ql_api.wxpusherAdminUid,"账号"+ptpin + "登录成功")
 
-        elif status == "pending":
-            r = mr(status, msg="正在处理中，请等待")
-        elif status == "error":
-            r = mr(status, msg="登录失败，请在十秒后重试：" + workList[uid].msg)
-        elif status == "SMS":
-            r = mr(status, msg="需要短信验证")
-        elif status == "wrongSMS":
-            r = mr(status, msg="短信验证错误，请重新输入")
-        else:
-            r = mr("error", msg="笨蛋开发者，忘记适配新状态啦：" + status)
-    # 账号列表无记录
-    else:
-        r = mr("error", msg="未找到该账号记录，请重新登录")
-    return r
+            if not account_exists(account_data):
+                save_account_data(account_data)
+                if ql_api.isWxPusher:
+                    loginNotify(ql_api.wxpusherAppToken, ql_api.wxpusherAdminUid, f"账号 {ptpin} 登录成功")
 
+            return mr(status, cookie=account.cookie, msg="成功")
+        
+        if status in ["pending", "error", "SMS", "wrongSMS"]:
+            return mr(status, msg=get_status_message(status, account.msg))
+        return mr("error", msg=f"笨蛋开发者，忘记适配新状态啦：{status}")
 
-# 传入短信验证码，更新账号列表使后端可以调用
+    return mr("error", msg="未找到该账号记录，请重新登录")
+
 @app.route("/sms", methods=["POST"])
 async def sms():
     data = await request.get_json()
-    uid = data.get("uid", None)
-    code = data.get("code", None)
-    # 检查传入验证码合规
-    if len(code) != 6 and not code.isdigit():
-        r = mr("wrongSMS", msg="验证码错误")
-        return r
+    uid = data.get("uid")
+    code = data.get("code")
+
+    if not validate_sms_code(code):
+        return mr("wrongSMS", msg="验证码错误")
+
     try:
         THREAD_SMS(uid, code)
-        r = mr("pass", msg="成功提交验证码")
-        return r
+        return mr("pass", msg="成功提交验证码")
     except Exception as e:
-        r = mr("error", msg=str(e))
-        return r
-#登录通知
-def loginNotify(token,uid,content):
+        return mr("error", msg=str(e))
+
+def loginNotify(token, uid, content):
     encoded_content = urllib.parse.quote(content)
-    url = "https://wxpusher.zjiecode.com/api/send/message/?appToken="+token+"&content="+encoded_content+"&uid="+uid+"&url=http%3a%2f%2fbaidu.com"
-    response = requests.get(url)
-    return ""
+    url = f"https://wxpusher.zjiecode.com/api/send/message/?appToken={token}&content={encoded_content}&uid={uid}&url=http%3a%2f%2fbaidu.com"
+    requests.get(url)
+
 def loginPublic(data):
     try:
-        u = account(data)
+        u = Account(data)
     except Exception as e:
-        r = mr("error", msg=str(e))
-        return r
-    # 检测重复提交
-    if workList.get(u.uid):
+        return mr("error", msg=str(e))
+
+    if u.uid in workList:
         workList[u.uid].SMS_CODE = None
-        r = mr("pass", uid=u.uid, msg=f"{u.account}已经在处理了，请稍后再试")
-        return r
+        return mr("pass", uid=u.uid, msg=f"{u.account}已经在处理了，请稍后再试")
 
-    # 新增记录
     workList[u.uid] = u
-    # 非阻塞启动登录线程
-    asyncio.create_task(THREAD_DO_LOGIN(workList, u.uid, ocr, ocrDet))
-    # 更新信息，响应api请求
-    workList[u.uid].status = "pending"
-    r = mr("pass", uid=u.uid, msg=f"{u.account}处理中, 到/check查询处理进度")
-    return r
-
+    asyncio.create_task(THREAD_DO_LOGIN(u.uid))
+    return mr("pass", uid=u.uid, msg=f"{u.account}处理中, 到/check查询处理进度")
 
 def THREAD_SMS(uid, code):
-    print("phase THREAD_SMS: " + str(code))
-    u = workList.get(uid, "")
-    if not u:
+    account = workList.get(uid)
+    if not account:
         raise ValueError("账号不在记录中")
-    if u.status == "SMS" or u.status == "wrongSMS":
-        u.SMS_CODE = code
+
+    if account.status in ["SMS", "wrongSMS"]:
+        account.SMS_CODE = code
     else:
         raise ValueError("账号不在SMS过程中")
 
+@app.route("/get", methods=["GET"])
+async def get_data():
+    config = load_from_file("config.json")
+    param_k = request.args.get("k")
 
-# -----regular functions-----
-# 删除成功或失败的账号记录
-async def deleteSession(uid):
-    await asyncio.sleep(5)
-    del workList[uid]
+    if param_k == config.get("key"):
+        data = load_from_file("data.json")
+        return jsonify(data)
+    return jsonify([])
 
+@app.route("/status", methods=["GET"])
+async def checkql():
+    ql_api = QLAPI()
+    try:
+        ql_api.load_config()
+        ql_api.get_token()
 
+        if ql_api.qltoken is None:
+            return mr("wrongQL", msg="存储容器检测失败, 请检查参数是否正确", data={"name": ql_api.name, "notice": ql_api.notice, "isPush": ql_api.isWxPusher})
+
+        return mr("pass", msg="存储容器检测成功", data={"name": ql_api.name, "notice": ql_api.notice, "isPush": ql_api.isWxPusher})
+
+    except:
+        return mr("wrongFile", msg="存储容器检测失败, 请检查config.json", data={})
+
+def extract_pt_pin(cookie_string):
+    match = re.search(r"pt_pin=([^;]+)", cookie_string)
+    return match.group(1) if match else ""
+
+@app.route("/qrcode", methods=["POST"])
+async def createQrCode():
+    data = await request.get_json()
+    result = createQrCodeApi(data.get('params', ''))
+
+    if result:
+        return mr("pass", msg='ok', data=result)
+    return mr("error", msg='error', data='')
+
+def createQrCodeApi(params):
+    ql_api = QLAPI()
+    ql_api.load_config()
+
+    url = "https://wxpusher.zjiecode.com/api/fun/create/qrcode"
+    payload = {"appToken": ql_api.wxpusherAppToken, "extra": params, "validTime": 300}
+    headers = {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        result = response.json()
+        if result.get("code") == 1000:
+            return result.get("data", {}).get("url")
+        print(f"API Error: {result.get('msg', 'Unknown error')}")
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+    return False
+
+@app.route("/wxpushercallback", methods=["POST"])
+async def wxpushercallback():
+    params = await request.get_json()
+    uid = params.get('data', {}).get('uid', '')
+    extra = params.get('data', {}).get('extra', '')
+
+    data = load_from_file("data.json")
+    for item in data:
+        if item["ptpin"] == extra:
+            item["wxpusherUid"] = uid
+            save_to_file("data.json", data)
+            return mr("pass", msg='ok', data=item)
+
+    return mr("error", msg='Item not found', data='')
+
+# Utility functions
 def load_from_file(filename):
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # 组合脚本目录与文件名形成相对路径
-    file_path = os.path.join(script_dir, filename)
-
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
     if os.path.exists(file_path):
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
     return []
-
 
 def save_to_file(filename, data):
     try:
@@ -281,137 +243,29 @@ def save_to_file(filename, data):
     except Exception as e:
         print(f"保存到文件时出错: {e}")
 
+def account_exists(account_data):
+    existing_data = load_from_file("data.json")
+    return any(
+        item["account"] == account_data["account"] and item["password"] == account_data["password"]
+        for item in existing_data
+    )
 
-# 新增的 GET 路由
-@app.route("/get", methods=["GET"])
-async def get_data():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # 组合脚本目录与文件名形成相对路径
-    file_path = os.path.join(script_dir, "config.json")
+def save_account_data(account_data):
+    existing_data = load_from_file("data.json")
+    existing_data.append(account_data)
+    save_to_file("data.json", existing_data)
 
-    if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8") as f:
-            config = json.load(f)
-            param_k = request.args.get("k")
-            # 接受GET传参k
-            if param_k == config["key"]:
-                filename = "data.json"
-                data = load_from_file(filename)
-                return jsonify(data)
-            else:
-                return jsonify([])
-
-
-@app.route("/status", methods=["GET"])
-async def checkql():
-    ql_api = QLAPI()
-    try:
-        ql_api.load_config()
-        ql_api.get_token()
-        if ql_api.qltoken is None:
-            r = mr(
-                "wrongQL",
-                msg="存储容器检测失败, 请检查参数是否正确",
-                data={"name": ql_api.name, "notice": ql_api.notice,"isPush":ql_api.isWxPusher},
-            )
-        else:
-            r = mr(
-                "pass",
-                msg="存储容器检测成功",
-                data={"name": ql_api.name, "notice": ql_api.notice,"isPush":ql_api.isWxPusher},
-            )
-        return r
-    except:
-        r = mr(
-            "wrongFile",
-            msg="存储容器检测失败, 请检查config.json",
-            data={},
-        )
-        return r
-
-
-"""
-@app.route("/delck", methods=["POST"])
-def delck():
-    data = request.get_json()
-    uid = data.get("uid", None)
-    if not exist(uid):
-        r = mr(False, msg="not exist")
-        return r
-
-    THREAD_DELCK(uid)
-"""
-
-
-def extract_pt_pin(cookie_string):
-    # 正则表达式匹配 pt_pin= 后的内容
-    match = re.search(r"pt_pin=([^;]+)", cookie_string)
-    if match:
-        return match.group(1)
-    else:
-        return ""
-@app.route("/qrcode", methods=["POST"])
-async def createQrCode():
-    data = await request.get_json()  # Retrieve JSON data from the POST request
-    ptpin = data.get('params', '')
-    result = createQrCodeApi(ptpin)
-    if not result:
-        return mr("error",msg='error',data='')
-    return mr("pass",msg='ok', data=result)
-
-def createQrCodeApi(params):
-    ql_api = QLAPI()
-    ql_api.load_config()
-    url = "https://wxpusher.zjiecode.com/api/fun/create/qrcode"
-    payload = {
-        "appToken": ql_api.wxpusherAppToken,
-        "extra": params,
-        "validTime": 300
+def get_status_message(status, message):
+    status_messages = {
+        "pending": "登录处理中，请稍等",
+        "error": f"登录出错：{message}",
+        "SMS": "验证码已发送，请检查短信",
+        "wrongSMS": "验证码错误，请重新输入",
     }
-    headers = {
-        "Accept": "*/*",
-        "Accept-Encoding": "gzip, deflate, br",
-        "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
-        "Connection": "keep-alive",
-        "Content-Type": "application/json"
-    }
-    try:
-        response = requests.post(url, json=payload, headers=headers)
-        result = response.json()
-        
-        if result.get("code") == 1000:
-            return result.get("data", {}).get("url")
-        else:
-            print(f"API Error: {result.get('msg', 'Unknown error')}")
-            return False
-    except requests.exceptions.RequestException as e:
-        print(f"Request failed: {e}")
-        return False
+    return status_messages.get(status, f"未处理的状态: {status}")
 
-#这里主要是实现了 如果用户扫码成功 wxpusher就会调用这个方法  具体传参看https://wxpusher.zjiecode.com/docs/#/?id=subscribe-callback
-#然后我们根据传参接收参数 保存至json
-@app.route("/wxpushercallback", methods=["POST"])
-async def wxpushercallback():
-    params = await request.get_json()
-    uid = params.get('data', {}).get('uid', '')
-    extra = params.get('data', {}).get('extra', '')
-    #这里保存到JSON文件
-    #找到DATA.JSON文件 DATA.JSON是一个数组
-    #找到和extra等于ptpin的一项
-    print("接收WXPUSHER CALLBACK UID"+uid)
-    print("接收WXPUSHER CALLBACK EXTRA" + extra)
-    data = load_from_file("data.json")
-
-    # Find the item where extra equals ptpin
-    for item in data:
-        #print(item["ptpin"])
-        #print(extra)
-        if item["ptpin"] == extra:
-            item["wxpusherUid"] = uid
-            save_to_file("data.json", data)
-            return mr("pass", msg='ok', data=item)
-
-    return mr("error", msg='Item not found', data='')
+def validate_sms_code(code):
+    return code and len(code) == 6
 
 
 class QLAPI:
