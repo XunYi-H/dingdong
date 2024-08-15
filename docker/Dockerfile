@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libatspi2.0-0 libxshmfence1 && \
     rm -rf /var/lib/apt/lists/* && \
     python -m pip install --upgrade pip && \
-    pip install pyppeteer Pillow asyncio aiohttp opencv-python-headless ddddocr quart requests hypercorn
+    pip install pyppeteer Pillow asyncio aiohttp opencv-python-headless ddddocr quart requests hypercorn apscheduler
 
 COPY ./docker/ ./
 # Expose the port
