@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # encoding: utf-8
 # login.py
 # author: github/svjdck & github.com/icepage/AutoUpdateJdCookie & 小九九 t.me/gdot0 & zhaozg

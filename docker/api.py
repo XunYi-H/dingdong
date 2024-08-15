@@ -1,3 +1,4 @@
+#!/bin/bash
 # -*- coding: utf-8 -*-
 # api.py
 run_host = "0.0.0.0"
