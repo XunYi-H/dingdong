@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'docker/**'
-      - 'Dockerfile'
+      - "docker/**"
+      - "Dockerfile"
 
 jobs:
   build:
@@ -15,14 +15,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push Docker image
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-          docker push ${{ secrets.DOCKER_USERNAME }}/ddd:latest
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x,linux/386
+          file: ./docker/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ddd:latest
