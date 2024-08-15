@@ -106,6 +106,7 @@ async def loginPhone(chromium_path, workList, uid, headless):
 
     browser = await launch(
         {
+            "dumpio":True,
             "executablePath": chromium_path,
             "headless": headless,
             "args": (
@@ -277,6 +278,7 @@ async def loginPassword(chromium_path, workList, uid, headless):
 
     browser = await launch(
         {
+            "dumpio":True,
             "executablePath": chromium_path,
             "headless": headless,
             "args": (
@@ -339,7 +341,6 @@ async def loginPassword(chromium_path, workList, uid, headless):
 	                    await browser.close()
 	                    return "notSupport"
             if not sms_sent:
-
                 if await page.J(".sub-title"):
                     print("进入选择短信验证分支")
                     if not workList[uid].isAuto:
@@ -991,7 +992,7 @@ async def main(workList, uid, oocr, oocrDet):
                 print("文件位于github，请耐心等待，如遇到网络问题可到项目地址手动下载")
                 download_url = "https://mirrors.huaweicloud.com/chromium-browser-snapshots/Linux_x64/884014/chrome-linux.zip"
                 if 'arm' in platform.machine():
-                    download_url = "https://playwright.azureedge.net/builds/chromium/1088/chromium-linux-arm64.zip";
+                    download_url = "https://playwright.azureedge.net/builds/chromium/1088/chromium-linux-arm64.zip"
                 if not os.path.exists(download_path):
                     os.makedirs(download_path, exist_ok=True)
                 target_file = os.path.join(
