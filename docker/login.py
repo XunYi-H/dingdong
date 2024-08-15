@@ -995,9 +995,7 @@ async def main(workList, uid, oocr, oocrDet):
                 print(platform.machine())
                 download_url = "https://mirrors.huaweicloud.com/chromium-browser-snapshots/Linux_x64/884014/chrome-linux.zip"
                 if 'arm' in platform.machine():
-                    download_url = "https://registry.npmmirror.com/-/binary/playwright/builds/chromium/1084/chromium-linux-arm64.zip"
-                if 'aarch64' in platform.machine():
-                    download_url = "https://registry.npmmirror.com/-/binary/playwright/builds/chromium/1084/chromium-linux-arm64.zip"
+                    download_url = "https://playwright.azureedge.net/builds/chromium/1088/chromium-linux-arm64.zip"
                 if not os.path.exists(download_path):
                     os.makedirs(download_path, exist_ok=True)
                 target_file = os.path.join(
