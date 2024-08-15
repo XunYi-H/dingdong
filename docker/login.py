@@ -963,7 +963,7 @@ async def main(workList, uid, oocr, oocrDet):
             if os.path.exists(chrome_exe):
                 return chrome_exe
             else:
-                print("貌似第一次使用，未找到chrome，正在下载chrome浏览器....")
+                print("貌似第一次使用，未找到chrome，正在下载chrome浏览器....WINDOWS版本")
 
                 chromeurl = "https://mirrors.huaweicloud.com/chromium-browser-snapshots/Win_x64/588429/chrome-win32.zip"
                 target_file = "chrome-win.zip"
@@ -987,10 +987,12 @@ async def main(workList, uid, oocr, oocrDet):
                 "~/.local/share/pyppeteer/local-chromium/1181205/"
             )
             if os.path.isfile(chrome_path):
+                print("已找到chrome，正在使用")
                 return chrome_path
             else:
-                print("貌似第一次使用，未找到chrome，正在下载chrome浏览器....")
+                print("貌似第一次使用，未找到chrome，正在下载chrome浏览器....LINUX版本")
                 print("文件位于github，请耐心等待，如遇到网络问题可到项目地址手动下载")
+                print(platform.machine())
                 download_url = "https://mirrors.huaweicloud.com/chromium-browser-snapshots/Linux_x64/884014/chrome-linux.zip"
                 if 'arm' in platform.machine():
                     download_url = "https://playwright.azureedge.net/builds/chromium/1088/chromium-linux-arm64.zip"
