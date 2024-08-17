@@ -128,7 +128,7 @@ async def THREAD_DO_LOGIN(workList, uid, ocr, ocrDet):
     try:
         await backend.main(workList, uid, ocr, ocrDet)
     except Exception as e:
-        print(e)
+        #print(e)
         workList[uid].msg = str(e)
 
     """
