@@ -106,7 +106,7 @@ class JD:
                     self.sender.reply("错误退出")
                     exit()
 
-    def l(self,phone,password,qd,usid=None):
+    def l(self,phone,password,qd,usid=None,auto=None):
 
         # 开始登录login
         loginData = self.login(phone, password)
@@ -123,7 +123,7 @@ class JD:
                     checkData = self.check(uid)
                     if checkData:
                         if checkData["status"] == "pass":
-                            self.success += 1
+
                             # 无验证
                             cookie = checkData["cookie"]
                             pin = re.search(r"pt_pin=([^;]+)",cookie).group(1)
@@ -132,35 +132,43 @@ class JD:
                             # self.sender.reply(qlData)
 
                             # 存储账号密码到奥特曼桶
-                            tong = middleware.bucketGet(self.tongname, self.user)
-                            if tong == "":
-
-                                old = [f"{phone}#{password}#{qd}#{cookie}"]
-                                middleware.bucketSet(self.tongname, self.user, f"{old}")
-                                self.sender.reply(f"{pin}提交成功")
+                            if auto != "auto":
+                                tong = middleware.bucketGet(self.tongname, self.user)
+                                if tong == "":
+                                    old = [f"{phone}#{password}#{qd}#{cookie}"]
+                                    middleware.bucketSet(self.tongname, self.user, f"{old}")
+                                    self.sender.reply(f"{pin}提交成功")
+                           
+                                    return
+                                else:
+                                    tong = eval(tong)
+                                    a = 0
+                                    for z in tong:
+                                        if phone == z.split("#")[0]:
+                                            qd = self.sender.getImtype()
+                                            tong[a] = f"{phone}#{password}#{qd}#{cookie}"
+                                            middleware.bucketSet(self.tongname, self.user, f"{tong}")
+                                            self.sender.reply(f"{pin}更新成功")
+                                         
+                                            return
+                                        a += 1
+                                    tong.append(f"{phone}#{password}#{qd}#{cookie}")
+                                    middleware.bucketSet(self.tongname, self.user, f"{tong}")
+                                    self.sender.reply(f"{pin}提交成功")
+                                  
+                                    return
                             else:
+                                tong = middleware.bucketGet(self.tongname, usid)
                                 tong = eval(tong)
                                 a = 0
                                 for z in tong:
                                     if phone == z.split("#")[0]:
                                         qd = z.split("#")[2]
-                                        if self.sender.getImtype():
-                                            qd = self.sender.getImtype()
                                         tong[a] = f"{phone}#{password}#{qd}#{cookie}"
-                                        middleware.bucketSet(self.tongname, self.user, f"{tong}")
+                                        middleware.bucketSet(self.tongname, usid, f"{tong}")
                                         self.sender.reply(f"{pin}更新成功")
-                                        exit(0)
-                                    a += 1
-
-                                tong.append(f"{phone}#{password}#{qd}#{cookie}")
-                                middleware.bucketSet(self.tongname, self.user, f"{tong}")
-                                self.sender.reply(f"{pin}提交成功")
-                                exit(0)
-
-                            break
-
-
-
+                                        self.success
+                                        return
                         elif checkData["status"] == "SMS":
                             self.error += 1
                             # 进行验证
@@ -184,7 +192,7 @@ class JD:
                                             checkData = self.check(uid)
                                             if checkData:
                                                 if checkData["status"] == "pass":
-                                                    self.success += 1
+                                                   
                                                     # 无验证
                                                     cookie = checkData["cookie"]
                                                     pin = re.search(r"pt_pin=([^;]+)", cookie).group(1)
@@ -192,32 +200,53 @@ class JD:
                                                     # qlData = QL(cookie, user, sender).put_ql()
                                                     # self.sender.reply(qlData)
                                                     # 存储账号密码到奥特曼桶
-                                                    tong = middleware.bucketGet(self.tongname, self.user)
-                                                    if tong == "":
-                                                        old = [f"{phone}#{password}#{qd}#{cookie}"]
-                                                        middleware.bucketSet(self.tongname, self.user, f"{old}")
-                                                        self.sender.reply(f"{pin}提交成功")
-                                                        exit(0)
-                                                    else:
+                                                    if auto != "auto":
+                                                        tong = middleware.bucketGet(self.tongname, self.user)
+                                                        if tong == "" and auto != "auto":
+                                                            old = [f"{phone}#{password}#{qd}#{cookie}"]
+                                                            middleware.bucketSet(self.tongname, self.user, f"{old}")
+                                                            self.sender.reply(f"{pin}提交成功")
+                                                            
+                                                            return
+                                                        elif tong != "" and auto != "auto":
+                                                            tong = eval(tong)
+                                                            a = 0
+                                                            for z in tong:
+                                                                if phone == z.split("#")[0]:
+                                                                    qd = z.split("#")[2]
+                                                                    if self.sender.getImtype():
+                                                                        qd = self.sender.getImtype()
+                                                                    tong[a] = f"{phone}#{password}#{qd}#{cookie}"
+                                                                    middleware.bucketSet(self.tongname, self.user,
+                                                                                         f"{tong}")
+                                                                    self.sender.reply(f"{pin}更新成功")
+                                                                    
+                                                                    return
+                                                                a += 1
+
+                                                            tong.append(f"{phone}#{password}#{qd}#{cookie}")
+                                                            middleware.bucketSet(self.tongname, self.user,
+                                                                                 f"{tong}")
+                                                            self.sender.reply(f"{pin}提交成功")
+                                                           
+                                                            return
+                                                    elif auto == "auto":
+                                                        tong = middleware.bucketGet(self.tongname, usid)
                                                         tong = eval(tong)
                                                         a = 0
                                                         for z in tong:
                                                             if phone == z.split("#")[0]:
                                                                 qd = z.split("#")[2]
-                                                                if self.sender.getImtype():
-                                                                    qd = self.sender.getImtype()
                                                                 tong[a] = f"{phone}#{password}#{qd}#{cookie}"
-                                                                middleware.bucketSet(self.tongname, self.user,
+                                                                middleware.bucketSet(self.tongname, usid,
                                                                                      f"{tong}")
                                                                 self.sender.reply(f"{pin}更新成功")
-                                                                exit(0)
+                                                                self.success
+                                                                return
                                                             a += 1
 
-                                                        tong.append(f"{phone}#{password}#{qd}#{cookie}")
-                                                        middleware.bucketSet(self.tongname, self.user,
-                                                                             f"{tong}")
-                                                        self.sender.reply(f"{pin}提交成功")
-                                                        exit(0)
+
+
                                                 elif checkData["status"] == "pending":
 
                                                     time.sleep(3)
@@ -231,7 +260,7 @@ class JD:
 
                                         else:
                                             self.sender.reply(f"检测失败")
-                                            exit(0)
+                                            return
                                         # self.sender.reply("验证超时")
                                         # exit(0)
 
@@ -250,15 +279,14 @@ class JD:
                         else:
                             self.sender.reply(f"{checkData['msg']}")
                             return
-                        self.sender.reply("验证超时")
-                        exit(0)
+
 
 
                     else:
                         self.sender.reply("服务错误")
                     time.sleep(1)
-                self.sender.reply("验证超时")
-                exit(0)
+                # self.sender.reply("验证超时")
+                # exit(0)
         else:
             self.sender.reply("服务错误")
 
@@ -284,7 +312,7 @@ class JD:
                         having += 1
                         pass
                     else:
-                        self.l(phone,password,qd,usid)
+                        self.l(phone,password,qd,usid,"auto")
                         time.sleep(2)
                 # except Exception as e:
                 #     print(f"======{e}=======")
