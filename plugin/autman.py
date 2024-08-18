@@ -8,7 +8,7 @@
 # [service: 大帅逼]
 # [rule: ^京东(.*)$]
 # [admin: false]
-# [version: 1.0.0]
+# [version: 1.0.1]
 # [description: 【测试版：无短信登陆正常，请测试有短信(异地验证)的情况下有无报错】</br>京东账号密码自动更新ck，检测ck过期调用账号密码更新(京东运行指令)，对接路飞的docke项目</br>用户指令：京东登陆</br>管理员指令：京东运行(用于自动更新ck，配合奥特曼的定时推送功能)</br>密码可能有泄露风险，前先开启支付验证以及虚拟财产支付密码，项目开源]
 # [param: {"required":true,"key":"JDConfig.host","bool":false,"placeholder":"","name":"项目接口","desc":"http://项目接口ip:端口"}]
 # [param: {"required":true,"key":"JDConfig.notify","bool":false,"placeholder":"","name":"通知渠道","desc":"例如：wx,qq,tg,tb，也就是机器人对接的渠道"}]
