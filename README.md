@@ -2,6 +2,35 @@
 # 请合作者完善plugin 里面的两个机器人框架的插件 和script机器人定时执行脚本
 # 目前计划适配 无界 傻妞 奥特曼
 # 截至8-18 未参与issues 提议(反馈BUG和功能建议) 和 pr代码(提供和优化代码)的都会被撤去内测资格
+V2版本已更新:
+V2新版本
+AMD尝试
+```shell
+docker run -dit -v "$PWD/godonggocar/config.json:/app/config.json" -v "$PWD/godonggocar/user.json:/app/user.json" -p 12345:54321 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_amd64_godgoc
+
+ARM尝试用
+docker run -dit -v "$PWD/godonggocar/config.json:/app/config.json" -v "$PWD/godonggocar/user.json:/app/user.json" -p 12345:54321 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_arm64_godgoc
+```
+```shel
+V2新版本config.json
+mkdir godonggocar
+目录下创建config.json 里面写
+{
+"name": "test",
+"notice": "test",
+"qlHost": "http://127.0.0.1:5700",
+"qlClientId": "",
+"qlClientSecret": "",
+"key": "FFFFFF",
+"isPush": true,
+"wxpusherAppToken": "AT_GXXXXXXXXX",
+"wxpusherAdminUid": "UID_sXXXXXXXXXXXXXXX"
+}
+再次创建user.json里面写{}  注意是{} 而不是[]
+保存
+对接WXPUSH时 回调地址写http://公网地址/pushcallback
+```
+
 自用 学习 爱用不用 我自己写的我想咋写咋写
 ```shell
 mkdir godonggocar
