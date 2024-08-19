@@ -3,13 +3,13 @@
 # 目前计划适配 无界 傻妞 奥特曼
 # 截至8-18 未参与issues 提议(反馈BUG和功能建议) 和 pr代码(提供和优化代码)的都会被撤去内测资格
 V2版本已更新:
-V2新版本
 ```shell
+V2新版本
 AMD尝试
-docker run -dit -v "$PWD/godonggocar/config.json:/app/config.json" -v "$PWD/godonggocar/user.json:/app/user.json" -p 12345:54321 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_amd64_godgoc
+docker run -dit --name godgoc --restart unless-stopped -v "$PWD/godonggocar/config.json:/app/config.json" -v "$PWD/godonggocar/user.json:/app/user.json" -p 12345:54321 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_amd64_godgoc
 
 ARM尝试用
-docker run -dit -v "$PWD/godonggocar/config.json:/app/config.json" -v "$PWD/godonggocar/user.json:/app/user.json" -p 12345:54321 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_arm64_godgoc
+docker run -dit --name godgoc --restart unless-stopped -v "$PWD/godonggocar/config.json:/app/config.json" -v "$PWD/godonggocar/user.json:/app/user.json" -p 12345:5432 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_arm64_godgoc
 ```
 ```shel
 V2新版本config.json
