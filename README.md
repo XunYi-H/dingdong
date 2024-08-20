@@ -9,7 +9,7 @@ AMD尝试
 docker run -dit --name godgoc --restart unless-stopped -v "$PWD/godonggocar/config.json:/app/config.json" -v "$PWD/godonggocar/user.json:/app/user.json" -p 12345:54321 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_amd64_godgoc
 
 ARM尝试用
-docker run -dit --name godgoc --restart unless-stopped -v "$PWD/godonggocar/config.json:/app/config.json" -v "$PWD/godonggocar/user.json:/app/user.json" -p 12345:5432 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_arm64_godgoc
+docker run -dit --name godgoc --restart unless-stopped -v "$PWD/godonggocar/config.json:/app/config.json" -v "$PWD/godonggocar/user.json:/app/user.json" -p 12345:54321 registry.cn-hangzhou.aliyuncs.com/smallfawn/linux_arm64_godgoc
 ```
 ```shel
 V2新版本config.json
