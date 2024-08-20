@@ -8,7 +8,6 @@ run_port = 12345
 from quart import Quart, request, jsonify, send_from_directory, send_file
 import hashlib, asyncio
 import login as backend
-
 import ddddocr
 import json
 import os
